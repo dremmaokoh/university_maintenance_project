@@ -56,6 +56,13 @@ const requestSchema = new mongoose.Schema(
     ratedAt: {
       type: Date,
       default: null
+    },
+    evidence: {
+      originalName: { type: String, default: null },
+      storageKey: { type: String, default: null },
+      mimeType: { type: String, default: null },
+      size: { type: Number, default: null },
+      uploadedAt: { type: Date, default: null }
     }
   },
   { timestamps: true }

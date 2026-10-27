@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import FieldLabel from '../components/FieldLabel.jsx';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as authApi from '../api/authApi.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -8,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 export default function ResetPasswordPage() {
   const { token } = useParams();
   const { setSession } = useAuth();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [password, setPassword] = useState('');
@@ -29,6 +30,7 @@ export default function ResetPasswordPage() {
     try {
       const res = await authApi.completePasswordReset(token, password);
       setSession(res.data.token, res.data.user);
+      showSuccess('Password saved.');
       navigate('/dashboard');
     } catch (err) {
       showError(err.message);
@@ -65,7 +67,7 @@ export default function ResetPasswordPage() {
           {preview.organisation ? ` · ${preview.organisation.name}` : ''}
         </p>
         <label>
-          New password
+          <FieldLabel required>New password</FieldLabel>
           <input
             type="password"
             value={password}

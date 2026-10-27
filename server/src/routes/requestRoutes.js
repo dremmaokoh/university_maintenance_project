@@ -14,6 +14,7 @@ const {
   ratingValidators
 } = require('../validators/requestValidators');
 const requestService = require('../services/requestService');
+const { uploadEvidence, handleUploadError, removeUploadedFile } = require('../middleware/uploadEvidence');
 
 function createRequestRouter(env) {
   const router = express.Router();
@@ -30,20 +31,76 @@ function createRequestRouter(env) {
     })
   );
 
+  router.get(
+    '/work/stats',
+    requireAuth,
+    authorize(ROLES.OFFICER),
+    asyncHandler(async (req, res) => {
+      const stats = await requestService.getOfficerWorkStats(req.user);
+      res.json({ success: true, data: stats });
+    })
+  );
+
+  router.get(
+    '/export',
+    requireAuth,
+    authorize(ROLES.ADMIN, ROLES.OFFICER),
+    listRequestValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const items = await requestService.exportRequests(req.user, req.query);
+      res.json({ success: true, data: { items } });
+    })
+  );
+
   router.post(
     '/',
     requireAuth,
     authorize(ROLES.STUDENT),
+    (req, res, next) => {
+      uploadEvidence.single('evidence')(req, res, (err) => {
+        if (err) {
+          handleUploadError(err, req, res, next);
+          return;
+        }
+        next();
+      });
+    },
     createRequestValidators,
     validate,
+    asyncHandler(async (req, res, next) => {
+      try {
+        const request = await requestService.createRequest(
+          req.user,
+          {
+            title: req.body.title,
+            description: req.body.description,
+            location: req.body.location,
+            categoryId: req.body.categoryId
+          },
+          req.file
+        );
+        res.status(201).json({ success: true, data: request });
+      } catch (error) {
+        removeUploadedFile(req);
+        next(error);
+      }
+    })
+  );
+
+  router.get(
+    '/:id/evidence',
+    requireAuth,
+    param('id').isMongoId(),
+    validate,
     asyncHandler(async (req, res) => {
-      const request = await requestService.createRequest(req.user, {
-        title: req.body.title,
-        description: req.body.description,
-        location: req.body.location,
-        categoryId: req.body.categoryId
-      });
-      res.status(201).json({ success: true, data: request });
+      const file = await requestService.getRequestEvidenceFile(req.user, req.params.id);
+      res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${encodeURIComponent(file.originalName || 'evidence')}"`
+      );
+      res.sendFile(file.path);
     })
   );
 

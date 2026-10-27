@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import FieldLabel from '../components/FieldLabel.jsx';
 import * as inviteApi from '../api/inviteApi.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -8,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 export default function InviteAcceptPage() {
   const { token: inviteToken } = useParams();
   const { setSession } = useAuth();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [password, setPassword] = useState('');
@@ -29,6 +30,7 @@ export default function InviteAcceptPage() {
     try {
       const res = await inviteApi.acceptInvite(inviteToken, password);
       setSession(res.data.token, res.data.user);
+      showSuccess('Account activated.');
       navigate('/dashboard');
     } catch (err) {
       showError(err.message);
@@ -62,7 +64,7 @@ export default function InviteAcceptPage() {
           {preview.fullName} · {preview.email} · {roleLabel}
         </p>
         <label>
-          Password
+          <FieldLabel required>Password</FieldLabel>
           <input
             type="password"
             value={password}

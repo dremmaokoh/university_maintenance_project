@@ -56,6 +56,7 @@ function createAuthRouter(env) {
         fullName: req.body.fullName,
         email: req.body.email,
         password: req.body.password,
+        memberType: req.body.memberType,
         jwtSecret: env.jwtSecret,
         jwtExpiresIn: env.jwtExpiresIn
       });

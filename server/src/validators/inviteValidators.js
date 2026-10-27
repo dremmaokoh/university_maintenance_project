@@ -6,7 +6,12 @@ const createInviteValidators = [
   body('email').isEmail().withMessage('A valid email is required.').normalizeEmail(),
   body('role')
     .isIn(INVITE_ROLES)
-    .withMessage('Role must be admin or officer.')
+    .withMessage('Role must be admin or officer.'),
+  body('jobTitle')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Job title must be 80 characters or fewer.')
 ];
 
 const acceptInviteValidators = [

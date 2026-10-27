@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Organisation = require('../models/Organisation');
 const HttpError = require('../utils/httpError');
-const { ROLES, ACCOUNT_STATUS } = require('../constants');
+const { ROLES, ACCOUNT_STATUS, MEMBER_TYPES } = require('../constants');
 const { hashPassword, verifyPassword } = require('../auth/password');
 const { createAccessToken } = require('../auth/tokens');
 const organisationService = require('./organisationService');
@@ -24,6 +24,7 @@ async function enrichUser(user) {
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    memberType: user.memberType || MEMBER_TYPES.STUDENT,
     accountStatus: user.accountStatus,
     organisationId: user.organisation,
     organisation: org
@@ -38,8 +39,10 @@ function toPublicUser(user, extras = {}) {
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    memberType: user.memberType || MEMBER_TYPES.STUDENT,
     accountStatus: user.accountStatus,
     isActive: user.isActive,
+    jobTitle: user.jobTitle || null,
     organisationId: user.organisation,
     createdAt: user.createdAt,
     ...extras
@@ -269,7 +272,15 @@ async function completePasswordReset(rawToken, password, jwtSecret, jwtExpiresIn
   return { user: await enrichUser(user), token };
 }
 
-async function registerStudent({ orgSlug, fullName, email, password, jwtSecret, jwtExpiresIn }) {
+async function registerStudent({
+  orgSlug,
+  fullName,
+  email,
+  password,
+  memberType,
+  jwtSecret,
+  jwtExpiresIn
+}) {
   const org = await Organisation.findOne({ slug: orgSlug.toLowerCase() });
   if (!org) {
     throw new HttpError(404, 'Organisation not found. Check your sign-up link.');
@@ -281,11 +292,15 @@ async function registerStudent({ orgSlug, fullName, email, password, jwtSecret, 
     throw new HttpError(409, 'An account with this email already exists for this organisation.');
   }
 
+  const resolvedMemberType =
+    memberType === MEMBER_TYPES.STAFF ? MEMBER_TYPES.STAFF : MEMBER_TYPES.STUDENT;
+
   const user = await User.create({
     fullName,
     email: normalizedEmail,
     passwordHash: await hashPassword(password),
     role: ROLES.STUDENT,
+    memberType: resolvedMemberType,
     accountStatus: ACCOUNT_STATUS.ACTIVE,
     organisation: org.id
   });

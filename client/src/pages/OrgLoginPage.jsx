@@ -3,7 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
+import AuthTextField from '../components/auth/AuthTextField.jsx';
+import AuthPasswordField from '../components/auth/AuthPasswordField.jsx';
+import { EnvelopeIcon } from '../components/auth/AuthIcons.jsx';
 import * as organisationApi from '../api/organisationApi.js';
+import '../styles/login.css';
 
 export default function OrgLoginPage() {
   const { orgSlug } = useParams();
@@ -15,6 +19,7 @@ export default function OrgLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     setOrgLoading(true);
@@ -36,12 +41,15 @@ export default function OrgLoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setFormError('');
     setSubmitting(true);
     try {
       await login({ email, password, orgSlug });
       navigate('/dashboard');
     } catch (err) {
-      showError(err.message);
+      const message = err.message || 'Sign-in failed. Check your email and password.';
+      setFormError(message);
+      showError(message);
     } finally {
       setSubmitting(false);
     }
@@ -53,44 +61,79 @@ export default function OrgLoginPage() {
 
   if (!org) {
     return (
-      <div className="auth-page">
-        <div className="card form-card">
-          <p className="muted">This organisation link is not valid.</p>
-          <Link to="/">Go home</Link>
+      <div className="login-page">
+        <div className="login-page__backdrop" aria-hidden="true" />
+        <div className="login-card page-enter">
+          <p className="login-card__brand">Resolva</p>
+          <p className="login-form-error">This organisation link is not valid.</p>
+          <p className="login-auth-switch">
+            <Link to="/">Go home</Link>
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="auth-page">
-      <form className="card form-card page-enter" onSubmit={handleSubmit}>
-        <p className="brand-title">Resolva</p>
-        <h1>Student log in</h1>
-        <p className="muted">{org.name}</p>
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
+    <div className="login-page">
+      <div className="login-page__backdrop" aria-hidden="true" />
+
+      <div className="login-card page-enter">
+        <p className="login-card__brand">Resolva</p>
+        <p className="login-card__eyebrow">Staff &amp; Students sign in</p>
+        <h1 className="login-card__title">Log in</h1>
+        <p className="login-card__subtitle">
+          Welcome back. Sign in to manage and track maintenance requests.
+        </p>
+        <p className="login-institution">Signing in to {org.name}</p>
+
+        <form onSubmit={handleSubmit}>
+          {formError && (
+            <p className="login-form-error" role="alert">
+              {formError}
+            </p>
+          )}
+
+          <AuthTextField
+            id="org-login-email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            icon={<EnvelopeIcon />}
+            autoComplete="email"
+          />
+
+          <AuthPasswordField
+            id="org-login-password"
+            label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            autoComplete="current-password"
+            minLength={0}
           />
-        </label>
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
-          {submitting ? 'Logging in…' : 'Log in'}
-        </button>
-        <p className="auth-switch">
-          <Link to={`/o/${orgSlug}/login/forgot`}>Forgot password?</Link>
-        </p>
-        <p className="muted">
-          New student? <Link to={`/o/${orgSlug}/register`}>Sign up</Link>
-        </p>
-      </form>
+
+          <div className="login-forgot">
+            <Link to={`/o/${orgSlug}/login/forgot`}>Forgot password?</Link>
+          </div>
+
+          <button
+            type="submit"
+            className={`login-submit${submitting ? ' login-submit--busy' : ''}`}
+            disabled={submitting}
+            aria-busy={submitting}
+          >
+            {submitting && <span className="login-submit__spinner" aria-hidden="true" />}
+            {submitting ? 'Logging in…' : 'Log in'}
+          </button>
+        </form>
+
+        <div className="login-auth-links">
+          <p className="login-auth-switch">
+            New here? <Link to={`/o/${orgSlug}/register`}>Create account</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

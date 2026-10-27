@@ -4,7 +4,7 @@ export default function StarRating({ value, onChange, readOnly = false, label = 
   return (
     <div className="star-rating" role={readOnly ? 'img' : 'group'} aria-label={label}>
       {stars.map((star) => {
-        const filled = value >= star;
+        const filled = readOnly ? value >= star - 0.5 : value >= star;
         if (readOnly) {
           return (
             <span

@@ -5,7 +5,7 @@ const validate = require('../middleware/validate');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const { ROLES } = require('../constants');
-const { updateUserValidators } = require('../validators/userValidators');
+const { updateUserValidators, listOrgMembersValidators } = require('../validators/userValidators');
 const userService = require('../services/userService');
 
 function createUserRouter(env) {
@@ -29,6 +29,75 @@ function createUserRouter(env) {
     asyncHandler(async (req, res) => {
       const officers = await userService.listOfficers(req.user.organisationId);
       res.json({ success: true, data: officers });
+    })
+  );
+
+  router.get(
+    '/team/stats',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    asyncHandler(async (req, res) => {
+      const stats = await userService.getTeamStats(req.user.organisationId);
+      res.json({ success: true, data: stats });
+    })
+  );
+
+  router.get(
+    '/team/export',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    asyncHandler(async (req, res) => {
+      const items = await userService.exportTeamUsers(req.user.organisationId);
+      res.json({ success: true, data: { items } });
+    })
+  );
+
+  router.get(
+    '/members/stats',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    asyncHandler(async (req, res) => {
+      const stats = await userService.getOrgMemberStats(req.user.organisationId);
+      res.json({ success: true, data: stats });
+    })
+  );
+
+  router.get(
+    '/members',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    listOrgMembersValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const data = await userService.listOrgMembers(req.user.organisationId, req.query);
+      res.json({ success: true, data });
+    })
+  );
+
+  router.get(
+    '/members/export',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    listOrgMembersValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const items = await userService.exportOrgMembers(req.user.organisationId, req.query);
+      res.json({ success: true, data: { items } });
+    })
+  );
+
+  router.get(
+    '/:id/profile',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    param('id').isMongoId(),
+    validate,
+    asyncHandler(async (req, res) => {
+      const profile = await userService.getTeamMemberProfile(
+        req.user.organisationId,
+        req.params.id
+      );
+      res.json({ success: true, data: profile });
     })
   );
 

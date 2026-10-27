@@ -47,7 +47,7 @@ const STEPS = [
   {
     num: 'STEP 01 — REPORT',
     title: 'Submit the issue.',
-    body: 'Students and staff describe the problem and provide the relevant campus location.',
+    body: 'Staff and students describe the problem and provide the relevant campus location.',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -124,7 +124,7 @@ export default function WelcomePage() {
               </Link>
             </div>
             <p className="landing-hero-note">
-              For university administrators, students, staff, and maintenance teams.
+              For university administrators, staff and students, and maintenance teams.
             </p>
           </div>
           <LandingHeroDashboard />
@@ -189,7 +189,7 @@ export default function WelcomePage() {
       <section className="landing-section landing-section-block" id="demo">
         <h2 className="landing-section-heading">See it in action.</h2>
         <p className="landing-section-lead">
-          Students report issues. Officers update status. Everyone can follow the progress—from the
+          Staff and students report issues. Officers update status. Everyone can follow the progress—from the
           initial report to resolution.
         </p>
         <div className="landing-demo-grid">
@@ -233,7 +233,7 @@ export default function WelcomePage() {
           </nav>
         </div>
         <p className="landing-footer-copy">
-          © {new Date().getFullYear()} Resolva. Students register through their institution&apos;s link.
+          © {new Date().getFullYear()} Resolva. Staff and students register through their institution&apos;s link.
         </p>
       </footer>
     </div>

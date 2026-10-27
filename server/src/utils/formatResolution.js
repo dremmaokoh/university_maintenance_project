@@ -31,4 +31,11 @@ function formatResolutionDuration(createdAt, completedAt) {
   return days === 1 ? '1 day' : `${days} days`;
 }
 
-module.exports = { formatResolutionDuration };
+function formatDurationFromMs(ms) {
+  if (ms == null || ms < 0) {
+    return null;
+  }
+  return formatResolutionDuration(new Date(0), new Date(ms));
+}
+
+module.exports = { formatResolutionDuration, formatDurationFromMs };

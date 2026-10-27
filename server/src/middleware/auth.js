@@ -36,6 +36,7 @@ function authenticate(jwtSecret) {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      memberType: user.memberType || 'student',
       organisationId: user.organisation,
       organisation: org
         ? { id: org.id, name: org.name, slug: org.slug }

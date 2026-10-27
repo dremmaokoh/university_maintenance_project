@@ -31,6 +31,13 @@ const ALLOWED_TRANSITIONS = {
 
 const INVITE_ROLES = [ROLES.ADMIN, ROLES.OFFICER];
 
+const MEMBER_TYPES = {
+  STUDENT: 'student',
+  STAFF: 'staff'
+};
+
+const MEMBER_TYPE_VALUES = Object.values(MEMBER_TYPES);
+
 module.exports = {
   ROLES,
   ROLE_VALUES,
@@ -39,5 +46,7 @@ module.exports = {
   STATUSES,
   STATUS_VALUES,
   ALLOWED_TRANSITIONS,
-  INVITE_ROLES
+  INVITE_ROLES,
+  MEMBER_TYPES,
+  MEMBER_TYPE_VALUES
 };

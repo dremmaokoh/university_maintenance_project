@@ -13,7 +13,8 @@ const listRequestValidators = [
   query('limit').optional().isInt({ min: 1, max: 50 }).toInt().withMessage('Limit must be between 1 and 50.'),
   query('status').optional().isIn(STATUS_VALUES).withMessage('Invalid status.'),
   query('category').optional().isMongoId().withMessage('Invalid category.'),
-  query('search').optional().trim()
+  query('search').optional().trim(),
+  query('order').optional().isIn(['asc', 'desc'])
 ];
 
 const assignRequestValidators = [

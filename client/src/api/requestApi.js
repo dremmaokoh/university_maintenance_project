@@ -1,4 +1,4 @@
-import { apiRequest } from './client.js';
+import { apiBlobRequest, apiFormRequest, apiRequest } from './client.js';
 
 function queryString(params) {
   const search = new URLSearchParams();
@@ -15,12 +15,33 @@ export function listRequests(token, params = {}) {
   return apiRequest(`/requests${queryString(params)}`, { token });
 }
 
+export function exportRequests(token, params = {}) {
+  return apiRequest(`/requests/export${queryString(params)}`, { token });
+}
+
+export function getOfficerWorkStats(token) {
+  return apiRequest('/requests/work/stats', { token });
+}
+
 export function getRequest(token, id) {
   return apiRequest(`/requests/${id}`, { token });
 }
 
-export function createRequest(token, body) {
+export function createRequest(token, body, evidenceFile) {
+  if (evidenceFile) {
+    const form = new FormData();
+    form.append('title', body.title);
+    form.append('description', body.description);
+    form.append('location', body.location);
+    form.append('categoryId', body.categoryId);
+    form.append('evidence', evidenceFile);
+    return apiFormRequest('/requests', { method: 'POST', token, body: form });
+  }
   return apiRequest('/requests', { method: 'POST', token, body });
+}
+
+export function fetchRequestEvidence(token, id) {
+  return apiBlobRequest(`/requests/${id}/evidence`, { token });
 }
 
 export function assignRequest(token, id, officerId) {

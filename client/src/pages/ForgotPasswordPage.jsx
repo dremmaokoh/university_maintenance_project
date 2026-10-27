@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import * as authApi from '../api/authApi.js';
 import * as organisationApi from '../api/organisationApi.js';
 import { useToast } from '../context/ToastContext.jsx';
+import AuthTextField from '../components/auth/AuthTextField.jsx';
+import { EnvelopeIcon } from '../components/auth/AuthIcons.jsx';
+import '../styles/login.css';
 
 export default function ForgotPasswordPage() {
   const { orgSlug } = useParams();
@@ -13,6 +16,8 @@ export default function ForgotPasswordPage() {
   const [resetLink, setResetLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [accounts, setAccounts] = useState(null);
+  const [formError, setFormError] = useState('');
+  const [fieldError, setFieldError] = useState('');
 
   useEffect(() => {
     if (!orgSlug) {
@@ -25,16 +30,25 @@ export default function ForgotPasswordPage() {
   }, [orgSlug]);
 
   const loginPath = orgSlug ? `/o/${orgSlug}/login` : '/login';
+  const isOrgFlow = Boolean(orgSlug);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setResetLink('');
     setCopied(false);
     setAccounts(null);
+    setFormError('');
+    setFieldError('');
+
+    if (!email.trim()) {
+      setFieldError('Email is required.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await authApi.forgotPassword({
-        email,
+        email: email.trim(),
         orgSlug: orgSlug || undefined
       });
       if (res.data.requiresAccountChoice) {
@@ -44,8 +58,11 @@ export default function ForgotPasswordPage() {
       }
       const link = `${window.location.origin}${res.data.resetPath}`;
       setResetLink(link);
+      showSuccess('Reset link ready. Copy it below to continue.');
     } catch (err) {
-      showError(err.message);
+      const message = err.message || 'Could not start password reset. Please try again.';
+      setFormError(message);
+      showError(message);
     } finally {
       setSubmitting(false);
     }
@@ -53,13 +70,17 @@ export default function ForgotPasswordPage() {
 
   async function chooseAccount(userId) {
     setSubmitting(true);
+    setFormError('');
     try {
-      const res = await authApi.forgotPassword({ email, userId });
+      const res = await authApi.forgotPassword({ email: email.trim(), userId });
       const link = `${window.location.origin}${res.data.resetPath}`;
       setResetLink(link);
       setAccounts(null);
+      showSuccess('Reset link ready. Copy it below to continue.');
     } catch (err) {
-      showError(err.message);
+      const message = err.message || 'Could not start password reset. Please try again.';
+      setFormError(message);
+      showError(message);
     } finally {
       setSubmitting(false);
     }
@@ -71,67 +92,98 @@ export default function ForgotPasswordPage() {
     showSuccess('Reset link copied.');
   }
 
+  const subtitle = isOrgFlow
+    ? 'Enter your email and we will generate a secure link to set a new password.'
+    : 'Enter your work email to generate a secure reset link for your administrator or staff account.';
+
   return (
-    <div className="auth-page">
-      <form className="card form-card page-enter" onSubmit={handleSubmit}>
-        <p className="brand-title">Resolva</p>
-        <h1>Forgot password</h1>
-        <p className="muted">
-          {orgSlug
-            ? orgName
-              ? `Reset your password for ${orgName}.`
-              : 'Reset your student account password.'
-            : 'Reset your administrator or staff password.'}
-        </p>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-        </label>
-        {!accounts && !resetLink && (
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Working…' : 'Get reset link'}
-          </button>
+    <div className="login-page">
+      <div className="login-page__backdrop" aria-hidden="true" />
+
+      <div className="login-card page-enter">
+        <p className="login-card__brand">Resolva</p>
+        <p className="login-card__eyebrow">Account recovery</p>
+        <h1 className="login-card__title">Forgot password</h1>
+        <p className="login-card__subtitle">{subtitle}</p>
+
+        {isOrgFlow && orgName && (
+          <p className="login-institution">Resetting password for {orgName}</p>
         )}
-        {accounts && (
-          <div className="account-choices">
-            <p className="muted">Choose your organisation:</p>
-            {accounts.map((account) => (
+
+        {!resetLink && (
+          <form onSubmit={handleSubmit} noValidate>
+            {formError && (
+              <p className="login-form-error" role="alert">
+                {formError}
+              </p>
+            )}
+
+            <AuthTextField
+              id="forgot-email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFieldError('');
+              }}
+              error={fieldError}
+              icon={<EnvelopeIcon />}
+              autoComplete="email"
+            />
+
+            {!accounts && (
               <button
-                key={account.userId}
-                type="button"
-                className="btn btn-secondary btn-block account-choice"
+                type="submit"
+                className={`login-submit${submitting ? ' login-submit--busy' : ''}`}
                 disabled={submitting}
-                onClick={() => chooseAccount(account.userId)}
+                aria-busy={submitting}
               >
-                {account.organisationName} — {account.role}
+                {submitting && <span className="login-submit__spinner" aria-hidden="true" />}
+                {submitting ? 'Working…' : 'Get reset link'}
               </button>
-            ))}
+            )}
+
+            {accounts && (
+              <div className="login-account-choices">
+                <p className="muted">Choose your organisation:</p>
+                {accounts.map((account) => (
+                  <button
+                    key={account.userId}
+                    type="button"
+                    className="btn btn-secondary btn-block account-choice"
+                    disabled={submitting}
+                    onClick={() => chooseAccount(account.userId)}
+                  >
+                    {account.organisationName} — {account.role}
+                  </button>
+                ))}
+              </div>
+            )}
+          </form>
+        )}
+
+        {resetLink && (
+          <div className="login-reset-panel">
+            <h2 className="login-reset-panel__title">Password reset link</h2>
+            <p className="login-field__hint">
+              Copy this link and open it in your browser. It expires in 24 hours.
+            </p>
+            <p className="login-reset-panel__url">{resetLink}</p>
+            <button
+              type="button"
+              className="login-submit login-reset-panel__copy"
+              onClick={copyLink}
+            >
+              {copied ? 'Copied' : 'Copy link'}
+            </button>
           </div>
         )}
-        <p className="auth-switch">
+
+        <p className="login-auth-switch">
           <Link to={loginPath}>Back to log in</Link>
         </p>
-      </form>
-
-      {resetLink && (
-        <div className="card form-card invite-result">
-          <h2>Password reset link</h2>
-          <p className="muted">Copy this link and open it in your browser. It expires in 24 hours.</p>
-          <p className="invite-url">{resetLink}</p>
-          <button type="button" className="btn btn-secondary" onClick={copyLink}>
-            {copied ? 'Copied' : 'Copy link'}
-          </button>
-          <p className="auth-switch">
-            <Link to={loginPath}>Back to log in</Link>
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

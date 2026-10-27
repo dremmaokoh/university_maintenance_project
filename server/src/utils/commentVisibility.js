@@ -1,12 +1,32 @@
 const { ROLES } = require('../constants');
 
-const REQUESTER_MENTION_PATTERN = /@student\b/i;
+const LEGACY_REQUESTER_MENTION_PATTERN = /@student\b/i;
 
-function isVisibleToRequester(body, authorRole) {
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildRequesterNamePattern(requesterFullName) {
+  const trimmed = String(requesterFullName || '').trim();
+  if (!trimmed) {
+    return null;
+  }
+  return new RegExp(`@${escapeRegExp(trimmed)}`, 'i');
+}
+
+function isVisibleToRequester(body, authorRole, requesterFullName) {
   if (authorRole === ROLES.STUDENT) {
     return false;
   }
-  return REQUESTER_MENTION_PATTERN.test(body || '');
+  const text = body || '';
+  if (LEGACY_REQUESTER_MENTION_PATTERN.test(text)) {
+    return true;
+  }
+  const namePattern = buildRequesterNamePattern(requesterFullName);
+  if (namePattern && namePattern.test(text)) {
+    return true;
+  }
+  return false;
 }
 
 function filterCommentsForUser(comments, user, requesterId) {
@@ -27,7 +47,8 @@ function filterCommentsForUser(comments, user, requesterId) {
 }
 
 module.exports = {
-  REQUESTER_MENTION_PATTERN,
+  LEGACY_REQUESTER_MENTION_PATTERN,
   isVisibleToRequester,
-  filterCommentsForUser
+  filterCommentsForUser,
+  buildRequesterNamePattern
 };

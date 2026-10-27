@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout.jsx';
+import FieldLabel from '../components/FieldLabel.jsx';
+import PageHeader from '../components/admin/PageHeader.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import CommentComposer from '../components/CommentComposer.jsx';
 import StarRating from '../components/StarRating.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
+import RequestEvidence from '../components/RequestEvidence.jsx';
+import { memberTypeLabel } from '../utils/memberTypeLabel.js';
+import { officerDisplayLabel } from '../utils/officerDisplayLabel.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import * as requestApi from '../api/requestApi.js';
@@ -169,6 +174,7 @@ export default function RequestDetailPage() {
       const res = await requestApi.addRequestComment(token, id, commentBody.trim());
       setComments((prev) => [...prev, res.data]);
       setCommentBody('');
+      showSuccess('Comment posted.');
     } catch (err) {
       showError(err.message);
     } finally {
@@ -178,7 +184,7 @@ export default function RequestDetailPage() {
 
   if (loading) {
     return (
-      <DashboardLayout title="Request details">
+      <DashboardLayout>
         <LoadingSpinner layout="section" />
       </DashboardLayout>
     );
@@ -186,9 +192,15 @@ export default function RequestDetailPage() {
 
   if (!request) {
     return (
-      <DashboardLayout title="Request details">
+      <DashboardLayout>
         <p className="muted">Request not found.</p>
-        <Link to="/requests">Back to list</Link>
+        <Link to="/requests">
+          {user.role === 'student'
+            ? 'Back to My Requests'
+            : user.role === 'officer'
+              ? 'Back to My Work'
+              : 'Back to list'}
+        </Link>
       </DashboardLayout>
     );
   }
@@ -220,8 +232,17 @@ export default function RequestDetailPage() {
     request.officerRating != null;
 
   return (
-    <DashboardLayout title={request.title}>
-      <p><Link to="/requests">← Back to list</Link></p>
+    <DashboardLayout>
+      <PageHeader title={request.title} description={`${request.location} · ${request.category?.name || 'Uncategorised'}`} />
+      <p>
+        <Link to="/requests">
+          {user.role === 'student'
+            ? '← Back to My Requests'
+            : user.role === 'officer'
+              ? '← Back to My Work'
+              : '← Back to list'}
+        </Link>
+      </p>
       <article className="card">
         <div className="detail-row">
           <StatusBadge status={request.status} />
@@ -230,8 +251,14 @@ export default function RequestDetailPage() {
         <p><strong>Location:</strong> {request.location}</p>
         <p>{request.description}</p>
         <p className="muted">
-          Requester: {request.requester?.fullName} · Officer:{' '}
-          {request.assignedOfficer?.fullName || 'Not assigned'}
+          Requester: {request.requester?.fullName}
+          {request.requester?.memberType
+            ? ` (${memberTypeLabel(request.requester.memberType)})`
+            : ''}{' '}
+          · Officer:{' '}
+          {request.assignedOfficer
+            ? officerDisplayLabel(request.assignedOfficer)
+            : 'Not assigned'}
         </p>
         {request.resolutionDuration && (
           <p className="muted">
@@ -245,6 +272,8 @@ export default function RequestDetailPage() {
           </p>
         )}
       </article>
+
+      <RequestEvidence token={token} requestId={request.id} evidence={request.evidence} />
 
       {canRateOfficer && (
         <section className="card form-card rating-card">
@@ -269,7 +298,7 @@ export default function RequestDetailPage() {
         <div className="card form-card">
           <h2>Assigned officer</h2>
           <p className="muted">
-            <strong>{request.assignedOfficer.fullName}</strong> is assigned to this request. Cancel
+            <strong>{officerDisplayLabel(request.assignedOfficer)}</strong> is assigned to this request. Cancel
             the assignment to choose a different officer.
           </p>
           <button
@@ -287,10 +316,18 @@ export default function RequestDetailPage() {
         <form className="card form-card" onSubmit={handleAssign}>
           <h2>Assign officer</h2>
           <p className="muted">Only one officer can be assigned at a time.</p>
-          <select value={officerId} onChange={(e) => setOfficerId(e.target.value)} required>
+          <FieldLabel htmlFor="assign-officer" required>Maintenance officer</FieldLabel>
+          <select
+            id="assign-officer"
+            value={officerId}
+            onChange={(e) => setOfficerId(e.target.value)}
+            required
+          >
             <option value="">Select officer</option>
             {officers.map((officer) => (
-              <option key={officer.id} value={officer.id}>{officer.fullName}</option>
+              <option key={officer.id} value={officer.id}>
+                {officerDisplayLabel(officer)}
+              </option>
             ))}
           </select>
           <button type="submit" className="btn btn-primary" disabled={assignSubmitting}>
@@ -307,7 +344,7 @@ export default function RequestDetailPage() {
             visible to the requester and administrators.
           </p>
           <label>
-            Progress note (optional)
+            <FieldLabel optional>Progress note</FieldLabel>
             <input
               value={statusNote}
               onChange={(e) => setStatusNote(e.target.value)}
@@ -351,6 +388,7 @@ export default function RequestDetailPage() {
             onSubmit={handleAddComment}
             submitting={commentSubmitting}
             role={user.role}
+            requesterFullName={request.requester?.fullName}
           />
         ) : (
           <p className="muted">You cannot add comments on this request.</p>
@@ -366,7 +404,7 @@ export default function RequestDetailPage() {
                 {item.author?.role ? ` (${item.author.role})` : ''}
                 · {new Date(item.createdAt).toLocaleString()}
                 {isStaff && item.visibleToRequester && (
-                  <span className="comment-badge">Shared with student (@student)</span>
+                  <span className="comment-badge">Shared with requester</span>
                 )}
                 {isStaff && !item.visibleToRequester && item.author?.role !== 'student' && (
                   <span className="comment-badge staff-only">Staff only</span>

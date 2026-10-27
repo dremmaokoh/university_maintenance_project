@@ -43,7 +43,6 @@ export default function Layout({ title, children }) {
           <>
             <Link to="/requests">All requests</Link>
             <Link to="/admin/invites">Invite users</Link>
-            <Link to="/reports">Reports</Link>
           </>
         )}
       </nav>

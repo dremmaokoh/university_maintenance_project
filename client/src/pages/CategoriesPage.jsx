@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout.jsx';
+import FieldLabel from '../components/FieldLabel.jsx';
+import PageHeader from '../components/admin/PageHeader.jsx';
+import EmptyState from '../components/admin/EmptyState.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
@@ -15,6 +18,7 @@ export default function CategoriesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingPreset, setAddingPreset] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   function loadCategories() {
     setLoading(true);
@@ -41,6 +45,7 @@ export default function CategoriesPage() {
       await categoryApi.createCategory(token, { name, description });
       setName('');
       setDescription('');
+      setShowAddForm(false);
       showSuccess('Category added.');
       loadCategories();
     } catch (err) {
@@ -67,16 +72,46 @@ export default function CategoriesPage() {
   }
 
   return (
-    <DashboardLayout title="Request categories">
-      <p className="muted">
-        New organisations start with five common request types plus Other. Add any missing presets
-        below or create your own categories.
-      </p>
+    <DashboardLayout>
+      <PageHeader
+        title="Categories"
+        description="Define request types so staff and students can classify maintenance issues consistently."
+        actions={
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowAddForm((v) => !v)}
+          >
+            {showAddForm ? 'Close form' : 'Add category'}
+          </button>
+        }
+      />
+
+      {showAddForm && (
+        <form className="card form-card" onSubmit={handleSubmit}>
+          <h2 className="admin-section__title">New category</h2>
+          <label>
+            <FieldLabel required>Name</FieldLabel>
+            <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
+          </label>
+          <label>
+            <FieldLabel optional>Description</FieldLabel>
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={200}
+            />
+          </label>
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Adding…' : 'Save category'}
+          </button>
+        </form>
+      )}
 
       {!loading && suggested.length > 0 && (
         <section className="card preset-categories">
-          <h2>Suggested presets</h2>
-          <p className="muted">One-click add common categories students use most.</p>
+          <h2 className="admin-section__title">Suggested presets</h2>
+          <p className="admin-section__lead">Add common categories your organisation may be missing.</p>
           <ul className="preset-categories__list">
             {suggested.map((preset) => (
               <li key={preset.name} className="preset-categories__item">
@@ -100,46 +135,34 @@ export default function CategoriesPage() {
         </section>
       )}
 
-      <form className="card form-card" onSubmit={handleSubmit}>
-        <h2>Add a category</h2>
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
-        </label>
-        <label>
-          Description (optional)
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={200}
-          />
-        </label>
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
-          {submitting ? 'Adding…' : 'Add category'}
-        </button>
-      </form>
-
       <section className="card table-card">
-        <h2>Current categories</h2>
+        <h2 className="admin-section__title">Current categories</h2>
         {loading && <LoadingSpinner layout="section" />}
-        {!loading && categories.length === 0 && <p className="muted">No categories yet.</p>}
+        {!loading && categories.length === 0 && (
+          <EmptyState
+            title="No categories yet"
+            message="Add a category or use a suggested preset to get started."
+          />
+        )}
         {!loading && categories.length > 0 && (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id}>
-                  <td>{cat.name}</td>
-                  <td>{cat.description || '—'}</td>
+          <div className="table-scroll">
+            <table className="data-table data-table--comfortable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categories.map((cat) => (
+                  <tr key={cat.id}>
+                    <td><strong>{cat.name}</strong></td>
+                    <td>{cat.description || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </DashboardLayout>

@@ -12,10 +12,26 @@ function getInviteExpiryDate(days = 7) {
   return expires;
 }
 
-async function createInvite(adminUser, { fullName, email, role }, inviteExpiryDays) {
+function normalizeJobTitle(role, jobTitle) {
+  const trimmed = typeof jobTitle === 'string' ? jobTitle.trim() : '';
+  if (role === ROLES.OFFICER) {
+    if (!trimmed) {
+      throw new HttpError(400, 'Job title is required for maintenance officers.');
+    }
+    return trimmed;
+  }
+  if (role === ROLES.ADMIN) {
+    return trimmed || null;
+  }
+  return null;
+}
+
+async function createInvite(adminUser, { fullName, email, role, jobTitle }, inviteExpiryDays) {
   if (!INVITE_ROLES.includes(role)) {
     throw new HttpError(400, 'Invite role must be admin or officer.');
   }
+
+  const normalizedJobTitle = normalizeJobTitle(role, jobTitle);
 
   const normalizedEmail = normalizeAuthEmail(email);
   const existing = await User.findOne({
@@ -37,7 +53,8 @@ async function createInvite(adminUser, { fullName, email, role }, inviteExpiryDa
     inviteTokenHash: hashInviteToken(rawToken),
     inviteTokenExpiresAt: getInviteExpiryDate(inviteExpiryDays),
     invitedBy: adminUser.id,
-    isActive: true
+    isActive: true,
+    jobTitle: normalizedJobTitle
   });
 
   return {

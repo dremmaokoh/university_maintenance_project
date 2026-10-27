@@ -4,6 +4,9 @@ const registerValidators = [
   body('orgSlug').trim().notEmpty().withMessage('Organisation link is required.'),
   body('fullName').trim().notEmpty().withMessage('Full name is required.'),
   body('email').isEmail().withMessage('A valid email is required.').normalizeEmail(),
+  body('memberType')
+    .isIn(['student', 'staff'])
+    .withMessage('Choose whether you are Staff or Student.'),
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters.')

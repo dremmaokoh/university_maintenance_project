@@ -12,7 +12,6 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import RequestListPage from './pages/RequestListPage.jsx';
 import RequestDetailPage from './pages/RequestDetailPage.jsx';
 import CreateRequestPage from './pages/CreateRequestPage.jsx';
-import ReportsPage from './pages/ReportsPage.jsx';
 import InviteUsersPage from './pages/InviteUsersPage.jsx';
 import CategoriesPage from './pages/CategoriesPage.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
@@ -25,6 +24,9 @@ function DashboardRoute() {
   }
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  if (user.role === 'student' || user.role === 'officer') {
+    return <Navigate to="/requests" replace />;
   }
   return <DashboardPage />;
 }
@@ -76,14 +78,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute roles={['admin']}>
-            <ReportsPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
       <Route
         path="/admin/invites"
         element={

@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
-const { ROLES, ROLE_VALUES, ACCOUNT_STATUS, ACCOUNT_STATUS_VALUES } = require('../constants');
+const {
+  ROLES,
+  ROLE_VALUES,
+  ACCOUNT_STATUS,
+  ACCOUNT_STATUS_VALUES,
+  MEMBER_TYPES,
+  MEMBER_TYPE_VALUES
+} = require('../constants');
 
 const userSchema = new mongoose.Schema(
   {
@@ -28,6 +35,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ROLE_VALUES,
       required: true
+    },
+    memberType: {
+      type: String,
+      enum: MEMBER_TYPE_VALUES,
+      default: MEMBER_TYPES.STUDENT
     },
     accountStatus: {
       type: String,
@@ -60,6 +72,12 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    jobTitle: {
+      type: String,
+      trim: true,
+      maxlength: 80,
+      default: null
     }
   },
   { timestamps: true }

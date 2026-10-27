@@ -20,25 +20,7 @@ function buildErrorMessage(response, data) {
   return `Request failed${statusText}. Is the API running? Use npm run dev in the server folder and open http://localhost:5173.`;
 }
 
-export async function apiRequest(path, { method = 'GET', body, token } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  let response;
-  try {
-    response = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined
-    });
-  } catch {
-    throw new Error(
-      'Cannot reach the API. Start the server (npm run dev in the server folder), then use the app at http://localhost:5173 — not a file:// link or preview without the API.'
-    );
-  }
-
+async function parseApiResponse(response) {
   const text = await response.text();
   let data = {};
   if (text) {
@@ -60,4 +42,68 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
   }
 
   return data;
+}
+
+export async function apiRequest(path, { method = 'GET', body, token } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch {
+    throw new Error(
+      'Cannot reach the API. Start the server (npm run dev in the server folder), then use the app at http://localhost:5173 — not a file:// link or preview without the API.'
+    );
+  }
+
+  return parseApiResponse(response);
+}
+
+export async function apiFormRequest(path, { method = 'POST', body, token } = {}) {
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body
+    });
+  } catch {
+    throw new Error(
+      'Cannot reach the API. Start the server (npm run dev in the server folder), then use the app at http://localhost:5173 — not a file:// link or preview without the API.'
+    );
+  }
+
+  return parseApiResponse(response);
+}
+
+export async function apiBlobRequest(path, { token } = {}) {
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, { headers });
+  } catch {
+    throw new Error('Cannot reach the API.');
+  }
+
+  if (!response.ok) {
+    return parseApiResponse(response);
+  }
+
+  return response.blob();
 }

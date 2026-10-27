@@ -62,12 +62,13 @@ export function AuthProvider({ children }) {
         setUser(res.data.user);
         return res.data;
       },
-      async registerStudent(orgSlug, fullName, email, password) {
+      async registerStudent(orgSlug, fullName, email, password, memberType) {
         const res = await authApi.registerStudent({
           orgSlug,
           fullName,
           email,
-          password
+          password,
+          memberType
         });
         localStorage.setItem(TOKEN_KEY, res.data.token);
         setToken(res.data.token);

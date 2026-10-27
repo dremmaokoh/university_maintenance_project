@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import FieldLabel from '../components/FieldLabel.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import * as authApi from '../api/authApi.js';
 
 export default function CreateAdminPage() {
   const { setupAdmin, user } = useAuth();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const [organisationName, setOrganisationName] = useState('');
   const [fullName, setFullName] = useState('');
@@ -31,6 +32,7 @@ export default function CreateAdminPage() {
         return;
       }
       await setupAdmin(organisationName, fullName, email, password);
+      showSuccess('Organisation created.');
       navigate('/dashboard');
     } catch (err) {
       showError(err.message);
@@ -46,7 +48,7 @@ export default function CreateAdminPage() {
         <h1>Create your organisation</h1>
         <p className="muted">Register as the first administrator for your institution.</p>
         <label>
-          Organisation name
+          <FieldLabel required>Organisation name</FieldLabel>
           <input
             value={organisationName}
             onChange={(e) => setOrganisationName(e.target.value)}
@@ -55,15 +57,15 @@ export default function CreateAdminPage() {
           />
         </label>
         <label>
-          Your full name
+          <FieldLabel required>Your full name</FieldLabel>
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         </label>
         <label>
-          Work email
+          <FieldLabel required>Work email</FieldLabel>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
-          Password
+          <FieldLabel required>Password</FieldLabel>
           <input
             type="password"
             value={password}

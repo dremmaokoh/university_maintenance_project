@@ -8,6 +8,17 @@ test('staff comment with @student is visible to requester', () => {
   assert.equal(isVisibleToRequester('Internal note', ROLES.ADMIN), false);
 });
 
+test('staff comment mentioning requester by name is visible to requester', () => {
+  assert.equal(
+    isVisibleToRequester('Hi @Daniel Okoh, we fixed it', ROLES.OFFICER, 'Daniel Okoh'),
+    true
+  );
+  assert.equal(
+    isVisibleToRequester('Internal only', ROLES.OFFICER, 'Daniel Okoh'),
+    false
+  );
+});
+
 test('student comments are filtered for requester', () => {
   const comments = [
     {

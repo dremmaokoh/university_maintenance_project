@@ -8,8 +8,14 @@ const User = require('../models/User');
 const HttpError = require('../utils/httpError');
 const { ROLES, STATUSES, ALLOWED_TRANSITIONS } = require('../constants');
 const { formatResolutionDuration } = require('../utils/formatResolution');
+const {
+  evidenceFromMulterFile,
+  deleteEvidenceFile,
+  getEvidenceAbsolutePath
+} = require('../utils/evidenceStorage');
+const fs = require('fs');
 
-function toPublicRequest(request) {
+function toPublicRequest(request, extras = {}) {
   const effectiveCompletedAt =
     request.completedAt ||
     (request.status === STATUSES.COMPLETED ? request.updatedAt : null);
@@ -30,14 +36,16 @@ function toPublicRequest(request) {
       ? {
           id: request.requester.id || request.requester._id,
           fullName: request.requester.fullName,
-          email: request.requester.email
+          email: request.requester.email,
+          memberType: request.requester.memberType || 'student'
         }
       : null,
     assignedOfficer: request.assignedOfficer
       ? {
           id: request.assignedOfficer.id || request.assignedOfficer._id,
           fullName: request.assignedOfficer.fullName,
-          email: request.assignedOfficer.email
+          email: request.assignedOfficer.email,
+          jobTitle: request.assignedOfficer.jobTitle || null
         }
       : null,
     createdAt: request.createdAt,
@@ -45,8 +53,47 @@ function toPublicRequest(request) {
     completedAt: request.completedAt,
     officerRating: request.officerRating ?? null,
     ratedAt: request.ratedAt ?? null,
-    resolutionDuration
+    resolutionDuration,
+    evidence: request.evidence?.storageKey
+      ? {
+          originalName: request.evidence.originalName,
+          mimeType: request.evidence.mimeType,
+          size: request.evidence.size,
+          uploadedAt: request.evidence.uploadedAt
+        }
+      : null,
+    assignedAt: extras.assignedAt || null
   };
+}
+
+async function getAssignedAtMap(requestIds) {
+  if (!requestIds.length) {
+    return new Map();
+  }
+  const rows = await Assignment.find({ request: { $in: requestIds } })
+    .sort({ createdAt: -1 })
+    .select('request createdAt');
+
+  const map = new Map();
+  rows.forEach((row) => {
+    const key = String(row.request);
+    if (!map.has(key)) {
+      map.set(key, row.createdAt);
+    }
+  });
+  return map;
+}
+
+async function mapRequestsToPublic(items) {
+  const assignedAtMap = await getAssignedAtMap(items.map((item) => item._id));
+  return items.map((item) =>
+    toPublicRequest(item, { assignedAt: assignedAtMap.get(String(item._id)) || null })
+  );
+}
+
+function listSort(query = {}) {
+  const direction = query.order === 'asc' ? 1 : -1;
+  return { createdAt: direction };
 }
 
 function toPublicStatusUpdate(update) {
@@ -83,11 +130,10 @@ function assertSameOrganisation(user, request) {
   }
 }
 
-async function listRequests(user, query) {
+const EXPORT_MAX_ROWS = 2000;
+
+function buildListFilter(user, query = {}) {
   const filter = buildVisibilityFilter(user);
-  const page = Math.max(Number(query.page) || 1, 1);
-  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 50);
-  const skip = (page - 1) * limit;
 
   if (query.status) {
     filter.status = query.status;
@@ -103,19 +149,28 @@ async function listRequests(user, query) {
     ];
   }
 
+  return filter;
+}
+
+async function listRequests(user, query) {
+  const filter = buildListFilter(user, query);
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 50);
+  const skip = (page - 1) * limit;
+
   const [items, total] = await Promise.all([
     Request.find(filter)
       .populate('category', 'name')
-      .populate('requester', 'fullName email role')
-      .populate('assignedOfficer', 'fullName email role')
-      .sort({ createdAt: -1 })
+      .populate('requester', 'fullName email role memberType')
+      .populate('assignedOfficer', 'fullName email role jobTitle')
+      .sort(listSort(query))
       .skip(skip)
       .limit(limit),
     Request.countDocuments(filter)
   ]);
 
   return {
-    items: items.map(toPublicRequest),
+    items: await mapRequestsToPublic(items),
     page,
     limit,
     total,
@@ -123,11 +178,47 @@ async function listRequests(user, query) {
   };
 }
 
+async function exportRequests(user, query) {
+  const filter = buildListFilter(user, query);
+  const items = await Request.find(filter)
+    .populate('category', 'name')
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle')
+    .sort(listSort(query))
+    .limit(EXPORT_MAX_ROWS);
+
+  return mapRequestsToPublic(items);
+}
+
+async function getOfficerWorkStats(user) {
+  if (user.role !== ROLES.OFFICER) {
+    throw new HttpError(403, 'Not allowed.');
+  }
+  const base = {
+    organisation: user.organisationId,
+    assignedOfficer: user.id
+  };
+
+  const [total, pending, inProgress, completed] = await Promise.all([
+    Request.countDocuments(base),
+    Request.countDocuments({ ...base, status: STATUSES.ASSIGNED }),
+    Request.countDocuments({ ...base, status: STATUSES.IN_PROGRESS }),
+    Request.countDocuments({ ...base, status: STATUSES.COMPLETED })
+  ]);
+
+  return {
+    total,
+    pending,
+    inProgress,
+    completed
+  };
+}
+
 async function getRequestById(user, id) {
   const request = await Request.findById(id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   assertSameOrganisation(user, request);
 
@@ -145,7 +236,7 @@ async function getRequestById(user, id) {
   return toPublicRequest(request);
 }
 
-async function createRequest(user, payload) {
+async function createRequest(user, payload, uploadedFile) {
   if (user.role !== ROLES.STUDENT) {
     throw new HttpError(403, 'Only students can submit requests.');
   }
@@ -155,8 +246,13 @@ async function createRequest(user, payload) {
     organisation: user.organisationId
   });
   if (!category) {
+    if (uploadedFile) {
+      deleteEvidenceFile({ storageKey: uploadedFile.filename });
+    }
     throw new HttpError(400, 'Please choose a valid category.');
   }
+
+  const evidence = evidenceFromMulterFile(uploadedFile);
 
   const request = await Request.create({
     title: payload.title,
@@ -165,7 +261,8 @@ async function createRequest(user, payload) {
     category: category.id,
     organisation: user.organisationId,
     requester: user.id,
-    status: STATUSES.PENDING
+    status: STATUSES.PENDING,
+    evidence: evidence || undefined
   });
 
   await StatusUpdate.create({
@@ -177,8 +274,8 @@ async function createRequest(user, payload) {
 
   const populated = await Request.findById(request.id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   return toPublicRequest(populated);
 }
@@ -227,8 +324,8 @@ async function assignRequest(adminUser, requestId, officerId) {
 
   const populated = await Request.findById(request.id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   return toPublicRequest(populated);
 }
@@ -263,8 +360,8 @@ async function unassignRequest(adminUser, requestId) {
 
   const populated = await Request.findById(request.id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   return toPublicRequest(populated);
 }
@@ -322,8 +419,8 @@ async function updateRequestStatus(user, requestId, { status, note }) {
 
   const populated = await Request.findById(request.id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   return toPublicRequest(populated);
 }
@@ -354,8 +451,8 @@ async function rateAssignedOfficer(user, requestId, stars) {
 
   const populated = await Request.findById(request.id)
     .populate('category', 'name')
-    .populate('requester', 'fullName email role')
-    .populate('assignedOfficer', 'fullName email role');
+    .populate('requester', 'fullName email role memberType')
+    .populate('assignedOfficer', 'fullName email role jobTitle');
 
   return toPublicRequest(populated);
 }
@@ -413,7 +510,12 @@ async function addRequestComment(user, requestId, body) {
     throw new HttpError(403, 'You can only comment on requests assigned to you.');
   }
 
-  const visibleToRequester = isVisibleToRequester(body, user.role);
+  const requesterUser = await User.findById(request.requester).select('fullName');
+  const visibleToRequester = isVisibleToRequester(
+    body,
+    user.role,
+    requesterUser?.fullName
+  );
 
   const comment = await RequestComment.create({
     request: requestId,
@@ -467,6 +569,7 @@ async function getDashboardOverview(user) {
     Request.countDocuments({ ...baseFilter, status: STATUSES.COMPLETED }),
     Request.find(baseFilter)
       .populate('category', 'name')
+      .populate('requester', 'fullName email role memberType')
       .sort({ createdAt: -1 })
       .limit(6)
   ]);
@@ -486,9 +589,41 @@ async function getDashboardOverview(user) {
   };
 }
 
+async function getRequestEvidenceFile(user, requestId) {
+  const request = await Request.findById(requestId);
+  assertSameOrganisation(user, request);
+
+  const isOwner = request.requester && String(request.requester) === user.id;
+  const isAssigned =
+    request.assignedOfficer && String(request.assignedOfficer) === user.id;
+
+  if (user.role === ROLES.STUDENT && !isOwner) {
+    throw new HttpError(403, 'You can only view your own requests.');
+  }
+  if (user.role === ROLES.OFFICER && !isAssigned) {
+    throw new HttpError(403, 'You can only view requests assigned to you.');
+  }
+
+  if (!request.evidence?.storageKey) {
+    throw new HttpError(404, 'No evidence file for this request.');
+  }
+
+  const absolutePath = getEvidenceAbsolutePath(request.evidence.storageKey);
+  if (!fs.existsSync(absolutePath)) {
+    throw new HttpError(404, 'Evidence file is missing.');
+  }
+
+  return {
+    path: absolutePath,
+    mimeType: request.evidence.mimeType,
+    originalName: request.evidence.originalName
+  };
+}
+
 async function deleteRequest(user, requestId) {
   const request = await Request.findById(requestId);
   assertSameOrganisation(user, request);
+  deleteEvidenceFile(request.evidence);
   await Request.findByIdAndDelete(requestId);
   await Assignment.deleteMany({ request: requestId });
   await StatusUpdate.deleteMany({ request: requestId });
@@ -497,6 +632,8 @@ async function deleteRequest(user, requestId) {
 
 module.exports = {
   listRequests,
+  exportRequests,
+  getOfficerWorkStats,
   getRequestById,
   rateAssignedOfficer,
   createRequest,
@@ -509,5 +646,6 @@ module.exports = {
   addRequestComment,
   getReportSummary,
   getDashboardOverview,
-  deleteRequest
+  deleteRequest,
+  getRequestEvidenceFile
 };

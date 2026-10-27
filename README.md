@@ -29,7 +29,7 @@ App: `http://localhost:5173`
 ## Flow
 
 1. Open the home page → **Get started as admin** → enter **organisation name** + admin details.
-2. On the dashboard, copy **student sign-up / log-in links** for your organisation (`/o/{slug}/...`).
+2. On the dashboard, use **Share registration link** (Team & Access → Staff & Students) for your organisation (`/o/{slug}/register`).
 3. **Invite** other admins or maintenance officers (copy invite link).
 4. Students register only via your organisation’s link; requests stay scoped to that org.
 
