@@ -1,0 +1,43 @@
+const ROLES = {
+  STUDENT: 'student',
+  OFFICER: 'officer',
+  ADMIN: 'admin'
+};
+
+const ROLE_VALUES = Object.values(ROLES);
+
+const ACCOUNT_STATUS = {
+  PENDING: 'pending',
+  ACTIVE: 'active'
+};
+
+const ACCOUNT_STATUS_VALUES = Object.values(ACCOUNT_STATUS);
+
+const STATUSES = {
+  PENDING: 'pending',
+  ASSIGNED: 'assigned',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed'
+};
+
+const STATUS_VALUES = Object.values(STATUSES);
+
+const ALLOWED_TRANSITIONS = {
+  [STATUSES.PENDING]: [STATUSES.ASSIGNED],
+  [STATUSES.ASSIGNED]: [STATUSES.IN_PROGRESS],
+  [STATUSES.IN_PROGRESS]: [STATUSES.COMPLETED],
+  [STATUSES.COMPLETED]: []
+};
+
+const INVITE_ROLES = [ROLES.ADMIN, ROLES.OFFICER];
+
+module.exports = {
+  ROLES,
+  ROLE_VALUES,
+  ACCOUNT_STATUS,
+  ACCOUNT_STATUS_VALUES,
+  STATUSES,
+  STATUS_VALUES,
+  ALLOWED_TRANSITIONS,
+  INVITE_ROLES
+};
