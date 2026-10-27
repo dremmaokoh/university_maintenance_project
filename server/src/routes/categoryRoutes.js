@@ -19,19 +19,29 @@ function createCategoryRouter(env) {
     '/',
     requireAuth,
     asyncHandler(async (req, res) => {
-      const categories = await categoryService.listCategories();
+      const categories = await categoryService.listCategories(req.user.organisationId);
       res.json({ success: true, data: categories });
+    })
+  );
+
+  router.get(
+    '/suggested',
+    requireAuth,
+    authorize(ROLES.ADMIN, ROLES.OFFICER),
+    asyncHandler(async (req, res) => {
+      const presets = await categoryService.listSuggestedPresets(req.user.organisationId);
+      res.json({ success: true, data: presets });
     })
   );
 
   router.post(
     '/',
     requireAuth,
-    authorize(ROLES.ADMIN),
+    authorize(ROLES.ADMIN, ROLES.OFFICER),
     createCategoryValidators,
     validate,
     asyncHandler(async (req, res) => {
-      const category = await categoryService.createCategory(req.body);
+      const category = await categoryService.createCategory(req.user.organisationId, req.body);
       res.status(201).json({ success: true, data: category });
     })
   );
@@ -43,7 +53,11 @@ function createCategoryRouter(env) {
     updateCategoryValidators,
     validate,
     asyncHandler(async (req, res) => {
-      const category = await categoryService.updateCategory(req.params.id, req.body);
+      const category = await categoryService.updateCategory(
+        req.user.organisationId,
+        req.params.id,
+        req.body
+      );
       res.json({ success: true, data: category });
     })
   );
@@ -55,7 +69,7 @@ function createCategoryRouter(env) {
     param('id').isMongoId(),
     validate,
     asyncHandler(async (req, res) => {
-      await categoryService.deleteCategory(req.params.id);
+      await categoryService.deleteCategory(req.user.organisationId, req.params.id);
       res.json({ success: true, message: 'Category deleted.' });
     })
   );

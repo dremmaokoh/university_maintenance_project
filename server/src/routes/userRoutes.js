@@ -17,7 +17,7 @@ function createUserRouter(env) {
     requireAuth,
     authorize(ROLES.ADMIN),
     asyncHandler(async (req, res) => {
-      const users = await userService.listUsers();
+      const users = await userService.listUsers(req.user.organisationId);
       res.json({ success: true, data: users });
     })
   );
@@ -27,7 +27,7 @@ function createUserRouter(env) {
     requireAuth,
     authorize(ROLES.ADMIN),
     asyncHandler(async (req, res) => {
-      const officers = await userService.listOfficers();
+      const officers = await userService.listOfficers(req.user.organisationId);
       res.json({ success: true, data: officers });
     })
   );
@@ -39,7 +39,7 @@ function createUserRouter(env) {
     param('id').isMongoId(),
     validate,
     asyncHandler(async (req, res) => {
-      const user = await userService.getUserById(req.params.id);
+      const user = await userService.getUserById(req.user.organisationId, req.params.id);
       res.json({ success: true, data: user });
     })
   );
@@ -51,7 +51,12 @@ function createUserRouter(env) {
     updateUserValidators,
     validate,
     asyncHandler(async (req, res) => {
-      const user = await userService.updateUser(req.params.id, req.body);
+      const user = await userService.updateUser(
+        req.user.organisationId,
+        req.params.id,
+        req.body,
+        req.user.id
+      );
       res.json({ success: true, data: user });
     })
   );

@@ -9,7 +9,9 @@ const {
   createRequestValidators,
   listRequestValidators,
   assignRequestValidators,
-  statusValidators
+  statusValidators,
+  commentValidators,
+  ratingValidators
 } = require('../validators/requestValidators');
 const requestService = require('../services/requestService');
 
@@ -63,7 +65,7 @@ function createRequestRouter(env) {
     param('id').isMongoId(),
     validate,
     asyncHandler(async (req, res) => {
-      await requestService.deleteRequest(req.params.id);
+      await requestService.deleteRequest(req.user, req.params.id);
       res.json({ success: true, message: 'Request deleted.' });
     })
   );
@@ -80,6 +82,18 @@ function createRequestRouter(env) {
         req.params.id,
         req.body.officerId
       );
+      res.json({ success: true, data: request });
+    })
+  );
+
+  router.post(
+    '/:id/unassign',
+    requireAuth,
+    authorize(ROLES.ADMIN),
+    param('id').isMongoId(),
+    validate,
+    asyncHandler(async (req, res) => {
+      const request = await requestService.unassignRequest(req.user, req.params.id);
       res.json({ success: true, data: request });
     })
   );
@@ -110,6 +124,48 @@ function createRequestRouter(env) {
     })
   );
 
+  router.get(
+    '/:id/comments',
+    requireAuth,
+    param('id').isMongoId(),
+    validate,
+    asyncHandler(async (req, res) => {
+      const comments = await requestService.listRequestComments(req.user, req.params.id);
+      res.json({ success: true, data: comments });
+    })
+  );
+
+  router.post(
+    '/:id/comments',
+    requireAuth,
+    commentValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const comment = await requestService.addRequestComment(
+        req.user,
+        req.params.id,
+        req.body.body
+      );
+      res.status(201).json({ success: true, data: comment });
+    })
+  );
+
+  router.post(
+    '/:id/rating',
+    requireAuth,
+    authorize(ROLES.STUDENT),
+    ratingValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const request = await requestService.rateAssignedOfficer(
+        req.user,
+        req.params.id,
+        req.body.stars
+      );
+      res.status(201).json({ success: true, data: request });
+    })
+  );
+
   return router;
 }
 
@@ -122,7 +178,7 @@ function createAssignmentRouter(env) {
     requireAuth,
     authorize(ROLES.ADMIN),
     asyncHandler(async (req, res) => {
-      const assignments = await requestService.listAssignments();
+      const assignments = await requestService.listAssignments(req.user.organisationId);
       res.json({ success: true, data: assignments });
     })
   );
@@ -139,7 +195,7 @@ function createReportRouter(env) {
     requireAuth,
     authorize(ROLES.ADMIN),
     asyncHandler(async (req, res) => {
-      const summary = await requestService.getReportSummary();
+      const summary = await requestService.getReportSummary(req.user.organisationId);
       res.json({ success: true, data: summary });
     })
   );

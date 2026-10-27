@@ -6,8 +6,14 @@ export default function Layout({ title, children }) {
   const navigate = useNavigate();
 
   function handleLogout() {
+    const slug = user?.organisation?.slug;
+    const isStudent = user?.role === 'student';
     logout();
-    navigate('/');
+    if (isStudent && slug) {
+      navigate(`/o/${slug}/login`);
+      return;
+    }
+    navigate('/login');
   }
 
   return (

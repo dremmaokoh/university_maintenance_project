@@ -1,71 +1,65 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import * as authApi from '../api/authApi.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
+import * as authApi from '../api/authApi.js';
 
 export default function CreateAdminPage() {
   const { setupAdmin, user } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
-  const [setupAvailable, setSetupAvailable] = useState(null);
+  const [organisationName, setOrganisationName] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
       navigate('/dashboard', { replace: true });
-      return;
     }
-    authApi
-      .getSetupAvailable()
-      .then((res) => setSetupAvailable(res.data.setupAvailable))
-      .catch(() => setSetupAvailable(false));
   }, [user, navigate]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError('');
     setSubmitting(true);
     try {
-      await setupAdmin(fullName, email, password);
+      const check = await authApi.canCreateOrganisation(email);
+      if (!check.data.canCreate) {
+        showError('This email has already been used to create an organisation. Kindly log in.');
+        setSubmitting(false);
+        return;
+      }
+      await setupAdmin(organisationName, fullName, email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (setupAvailable === null) {
-    return <p className="muted center-page">Loading…</p>;
-  }
-
-  if (!setupAvailable) {
-    return (
-      <div className="auth-page">
-        <div className="card form-card">
-          <h1>Administrator setup closed</h1>
-          <p className="muted">An administrator already exists. Log in or ask for an invite link.</p>
-          <Link className="btn btn-primary" to="/login">Go to login</Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="auth-page">
-      <form className="card form-card" onSubmit={handleSubmit}>
-        <h1>Create administrator</h1>
-        <p className="muted">Set up the first admin account for your university.</p>
-        {error && <p className="error">{error}</p>}
+      <form className="card form-card page-enter" onSubmit={handleSubmit}>
+        <p className="brand-title">Resolva</p>
+        <h1>Create your organisation</h1>
+        <p className="muted">Register as the first administrator for your institution.</p>
         <label>
-          Full name
+          Organisation name
+          <input
+            value={organisationName}
+            onChange={(e) => setOrganisationName(e.target.value)}
+            required
+            placeholder="e.g. Valley State University"
+          />
+        </label>
+        <label>
+          Your full name
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         </label>
         <label>
-          Email
+          Work email
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
         <label>
@@ -79,9 +73,11 @@ export default function CreateAdminPage() {
           />
         </label>
         <button type="submit" className="btn btn-primary" disabled={submitting}>
-          {submitting ? 'Creating…' : 'Create admin account'}
+          {submitting ? 'Creating…' : 'Create organisation'}
         </button>
-        <p className="muted"><Link to="/">Back to home</Link></p>
+        <p className="auth-switch">
+          Already have an account? <Link to="/login">Log in</Link>
+        </p>
       </form>
     </div>
   );

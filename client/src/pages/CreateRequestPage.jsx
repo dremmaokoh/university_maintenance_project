@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout.jsx';
+import DashboardLayout from '../components/DashboardLayout.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
 import * as categoryApi from '../api/categoryApi.js';
 import * as requestApi from '../api/requestApi.js';
 
 export default function CreateRequestPage() {
   const { token } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -22,7 +23,6 @@ export default function CreateRequestPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError('');
     setSubmitting(true);
     try {
       const res = await requestApi.createRequest(token, {
@@ -33,16 +33,15 @@ export default function CreateRequestPage() {
       });
       navigate(`/requests/${res.data.id}`);
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Layout title="New maintenance request">
+    <DashboardLayout title="New maintenance request">
       <form className="card form-card" onSubmit={handleSubmit}>
-        {error && <p className="error">{error}</p>}
         <label>
           Title
           <input value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -73,6 +72,6 @@ export default function CreateRequestPage() {
           {submitting ? 'Submitting…' : 'Submit request'}
         </button>
       </form>
-    </Layout>
+    </DashboardLayout>
   );
 }

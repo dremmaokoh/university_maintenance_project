@@ -28,6 +28,11 @@ const requestSchema = new mongoose.Schema(
       enum: STATUS_VALUES,
       default: STATUSES.PENDING
     },
+    organisation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Organisation',
+      required: true
+    },
     requester: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -37,11 +42,27 @@ const requestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null
+    },
+    completedAt: {
+      type: Date,
+      default: null
+    },
+    officerRating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null
+    },
+    ratedAt: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }
 );
 
+requestSchema.index({ organisation: 1, createdAt: -1 });
+requestSchema.index({ organisation: 1, status: 1 });
 requestSchema.index({ requester: 1, createdAt: -1 });
 requestSchema.index({ assignedOfficer: 1, status: 1 });
 requestSchema.index({ status: 1 });

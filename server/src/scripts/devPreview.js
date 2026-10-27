@@ -14,6 +14,7 @@ async function main() {
   const mongoUri = mongod.getUri('university_maintenance');
 
   process.env.MONGODB_URI = mongoUri;
+  process.env.MONGODB_STORAGE = 'memory';
   if (!process.env.JWT_SECRET) {
     process.env.JWT_SECRET = 'local-preview-jwt-secret-change-in-production';
   }

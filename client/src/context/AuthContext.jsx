@@ -52,22 +52,35 @@ export function AuthProvider({ children }) {
         setToken(nextToken);
         setUser(nextUser);
       },
-      async login(email, password) {
-        const res = await authApi.login({ email, password });
+      async login(credentials) {
+        const res = await authApi.login(credentials);
+        if (res.data.requiresAccountChoice) {
+          return res.data;
+        }
+        localStorage.setItem(TOKEN_KEY, res.data.token);
+        setToken(res.data.token);
+        setUser(res.data.user);
+        return res.data;
+      },
+      async registerStudent(orgSlug, fullName, email, password) {
+        const res = await authApi.registerStudent({
+          orgSlug,
+          fullName,
+          email,
+          password
+        });
         localStorage.setItem(TOKEN_KEY, res.data.token);
         setToken(res.data.token);
         setUser(res.data.user);
         return res.data.user;
       },
-      async registerStudent(fullName, email, password) {
-        const res = await authApi.registerStudent({ fullName, email, password });
-        localStorage.setItem(TOKEN_KEY, res.data.token);
-        setToken(res.data.token);
-        setUser(res.data.user);
-        return res.data.user;
-      },
-      async setupAdmin(fullName, email, password) {
-        const res = await authApi.setupAdmin({ fullName, email, password });
+      async setupAdmin(organisationName, fullName, email, password) {
+        const res = await authApi.setupAdmin({
+          organisationName,
+          fullName,
+          email,
+          password
+        });
         localStorage.setItem(TOKEN_KEY, res.data.token);
         setToken(res.data.token);
         setUser(res.data.user);

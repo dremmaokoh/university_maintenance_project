@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Organisation = require('../models/Organisation');
 const HttpError = require('../utils/httpError');
 const { verifyAccessToken } = require('../auth/tokens');
 const asyncHandler = require('../utils/asyncHandler');
@@ -24,11 +25,21 @@ function authenticate(jwtSecret) {
       throw new HttpError(401, 'Please log in to continue.');
     }
 
+    if (String(user.organisation) !== String(payload.organisationId)) {
+      throw new HttpError(401, 'Please log in to continue.');
+    }
+
+    const org = await Organisation.findById(user.organisation);
+
     req.user = {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
-      role: user.role
+      role: user.role,
+      organisationId: user.organisation,
+      organisation: org
+        ? { id: org.id, name: org.name, slug: org.slug }
+        : null
     };
     next();
   });

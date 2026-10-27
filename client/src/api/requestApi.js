@@ -31,10 +31,34 @@ export function assignRequest(token, id, officerId) {
   });
 }
 
+export function unassignRequest(token, id) {
+  return apiRequest(`/requests/${id}/unassign`, { method: 'POST', token });
+}
+
 export function updateRequestStatus(token, id, body) {
   return apiRequest(`/requests/${id}/status`, { method: 'PATCH', token, body });
 }
 
 export function getRequestHistory(token, id) {
   return apiRequest(`/requests/${id}/history`, { token });
+}
+
+export function listRequestComments(token, id) {
+  return apiRequest(`/requests/${id}/comments`, { token });
+}
+
+export function addRequestComment(token, id, body) {
+  return apiRequest(`/requests/${id}/comments`, {
+    method: 'POST',
+    token,
+    body: { body }
+  });
+}
+
+export function rateRequest(token, id, stars) {
+  return apiRequest(`/requests/${id}/rating`, {
+    method: 'POST',
+    token,
+    body: { stars }
+  });
 }

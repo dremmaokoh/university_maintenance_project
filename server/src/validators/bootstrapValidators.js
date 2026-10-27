@@ -1,6 +1,7 @@
 const { body } = require('express-validator');
 
 const bootstrapAdminValidators = [
+  body('organisationName').trim().notEmpty().withMessage('Organisation name is required.'),
   body('fullName').trim().notEmpty().withMessage('Full name is required.'),
   body('email').isEmail().withMessage('A valid email is required.').normalizeEmail(),
   body('password')

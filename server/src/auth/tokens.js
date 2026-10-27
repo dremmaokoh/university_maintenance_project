@@ -4,7 +4,8 @@ function createAccessToken(user, jwtSecret, jwtExpiresIn) {
   return jwt.sign(
     {
       sub: user.id,
-      role: user.role
+      role: user.role,
+      organisationId: String(user.organisation)
     },
     jwtSecret,
     { expiresIn: jwtExpiresIn }

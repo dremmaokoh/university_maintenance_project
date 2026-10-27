@@ -8,6 +8,7 @@
     "dev:preview": "node src/scripts/devPreview.js",
     "start": "node src/index.js",
     "seed": "node src/scripts/seed.js",
+    "db:reset": "node src/scripts/resetDatabase.js",
     "test": "node --test src/tests/*.test.js"
   },
   "dependencies": {

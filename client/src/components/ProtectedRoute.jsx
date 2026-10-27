@@ -1,11 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import LoadingSpinner from './LoadingSpinner.jsx';
 
 export default function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p className="muted">Loading…</p>;
+    return <LoadingSpinner layout="page" />;
   }
 
   if (!user) {

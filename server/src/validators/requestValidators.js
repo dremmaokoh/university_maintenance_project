@@ -27,9 +27,21 @@ const statusValidators = [
   body('note').optional().trim()
 ];
 
+const commentValidators = [
+  param('id').isMongoId().withMessage('Invalid request id.'),
+  body('body').trim().notEmpty().withMessage('Comment cannot be empty.')
+];
+
+const ratingValidators = [
+  param('id').isMongoId().withMessage('Invalid request id.'),
+  body('stars').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5 stars.')
+];
+
 module.exports = {
   createRequestValidators,
   listRequestValidators,
   assignRequestValidators,
-  statusValidators
+  statusValidators,
+  commentValidators,
+  ratingValidators
 };

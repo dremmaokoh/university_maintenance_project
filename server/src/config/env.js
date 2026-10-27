@@ -1,7 +1,8 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+// override: true so server/.env wins over a Windows/user MONGODB_URI (common cause of "local" while .env says Atlas)
+dotenv.config({ path: path.join(__dirname, '../../.env'), override: true });
 
 function required(name) {
   const value = process.env[name];

@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as inviteApi from '../api/inviteApi.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 export default function InviteAcceptPage() {
   const { token: inviteToken } = useParams();
   const { setSession } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,34 +19,33 @@ export default function InviteAcceptPage() {
     inviteApi
       .getInvitePreview(inviteToken)
       .then((res) => setPreview(res.data))
-      .catch((err) => setError(err.message))
+      .catch((err) => showError(err.message || 'Invalid invite.'))
       .finally(() => setLoading(false));
-  }, [inviteToken]);
+  }, [inviteToken, showError]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError('');
     setSubmitting(true);
     try {
       const res = await inviteApi.acceptInvite(inviteToken, password);
       setSession(res.data.token, res.data.user);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     } finally {
       setSubmitting(false);
     }
   }
 
   if (loading) {
-    return <p className="muted center-page">Loading invite…</p>;
+    return <LoadingSpinner layout="page" label="Loading invite…" />;
   }
 
   if (!preview) {
     return (
       <div className="auth-page">
         <div className="card form-card">
-          <p className="error">{error || 'Invalid invite.'}</p>
+          <p className="muted">This invite link is invalid or has expired.</p>
           <Link to="/login">Go to login</Link>
         </div>
       </div>
@@ -60,7 +61,6 @@ export default function InviteAcceptPage() {
         <p className="muted">
           {preview.fullName} · {preview.email} · {roleLabel}
         </p>
-        {error && <p className="error">{error}</p>}
         <label>
           Password
           <input

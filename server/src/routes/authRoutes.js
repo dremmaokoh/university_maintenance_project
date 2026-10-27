@@ -2,18 +2,30 @@ const express = require('express');
 const asyncHandler = require('../utils/asyncHandler');
 const validate = require('../middleware/validate');
 const authenticate = require('../middleware/auth');
-const { registerValidators, loginValidators } = require('../validators/authValidators');
+const {
+  registerValidators,
+  loginValidators,
+  forgotPasswordValidators,
+  resetPasswordValidators
+} = require('../validators/authValidators');
 const { bootstrapAdminValidators } = require('../validators/bootstrapValidators');
 const authService = require('../services/authService');
+const User = require('../models/User');
+const { normalizeAuthEmail } = require('../utils/normalizeAuthEmail');
 
 function createAuthRouter(env) {
   const router = express.Router();
 
   router.get(
-    '/setup-available',
+    '/can-create-organisation',
     asyncHandler(async (req, res) => {
-      const available = await authService.isBootstrapAvailable();
-      res.json({ success: true, data: { setupAvailable: available } });
+      const rawEmail = req.query.email;
+      if (!rawEmail) {
+        res.json({ success: true, data: { canCreate: true } });
+        return;
+      }
+      const canCreate = await authService.canEmailCreateOrganisation(normalizeAuthEmail(rawEmail));
+      res.json({ success: true, data: { canCreate } });
     })
   );
 
@@ -23,6 +35,7 @@ function createAuthRouter(env) {
     validate,
     asyncHandler(async (req, res) => {
       const result = await authService.createBootstrapAdmin({
+        organisationName: req.body.organisationName,
         fullName: req.body.fullName,
         email: req.body.email,
         password: req.body.password,
@@ -33,30 +46,13 @@ function createAuthRouter(env) {
     })
   );
 
-  /**
-   * @openapi
-   * /api/auth/register:
-   *   post:
-   *     summary: Register a student account
-   *     tags: [Auth]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [fullName, email, password]
-   *             properties:
-   *               fullName: { type: string }
-   *               email: { type: string }
-   *               password: { type: string }
-   */
   router.post(
     '/register',
     registerValidators,
     validate,
     asyncHandler(async (req, res) => {
       const result = await authService.registerStudent({
+        orgSlug: req.body.orgSlug,
         fullName: req.body.fullName,
         email: req.body.email,
         password: req.body.password,
@@ -67,13 +63,6 @@ function createAuthRouter(env) {
     })
   );
 
-  /**
-   * @openapi
-   * /api/auth/login:
-   *   post:
-   *     summary: Log in
-   *     tags: [Auth]
-   */
   router.post(
     '/login',
     loginValidators,
@@ -82,6 +71,9 @@ function createAuthRouter(env) {
       const result = await authService.login({
         email: req.body.email,
         password: req.body.password,
+        organisationId: req.body.organisationId,
+        orgSlug: req.body.orgSlug,
+        userId: req.body.userId,
         jwtSecret: env.jwtSecret,
         jwtExpiresIn: env.jwtExpiresIn
       });
@@ -89,20 +81,50 @@ function createAuthRouter(env) {
     })
   );
 
-  /**
-   * @openapi
-   * /api/auth/me:
-   *   get:
-   *     summary: Current user
-   *     tags: [Auth]
-   *     security:
-   *       - bearerAuth: []
-   */
+  router.post(
+    '/forgot-password',
+    forgotPasswordValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const result = await authService.requestPasswordReset({
+        email: req.body.email,
+        orgSlug: req.body.orgSlug,
+        userId: req.body.userId
+      });
+      res.json({ success: true, data: result });
+    })
+  );
+
+  router.get(
+    '/reset-password/:token',
+    asyncHandler(async (req, res) => {
+      const preview = await authService.getPasswordResetPreview(req.params.token);
+      res.json({ success: true, data: preview });
+    })
+  );
+
+  router.post(
+    '/reset-password/:token',
+    resetPasswordValidators,
+    validate,
+    asyncHandler(async (req, res) => {
+      const result = await authService.completePasswordReset(
+        req.params.token,
+        req.body.password,
+        env.jwtSecret,
+        env.jwtExpiresIn
+      );
+      res.json({ success: true, data: result });
+    })
+  );
+
   router.get(
     '/me',
     authenticate(env.jwtSecret),
     asyncHandler(async (req, res) => {
-      res.json({ success: true, data: { user: req.user } });
+      const user = await User.findById(req.user.id);
+      const enriched = await authService.enrichUser(user);
+      res.json({ success: true, data: { user: enriched } });
     })
   );
 

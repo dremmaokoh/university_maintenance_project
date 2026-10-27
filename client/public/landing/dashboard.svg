@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-label="Resolva dashboard preview">
+  <rect width="1200" height="680" fill="#f8fafc"/>
+  <text x="48" y="56" fill="#4c1d95" font-family="Segoe UI, system-ui, sans-serif" font-size="28" font-weight="700">Dashboard</text>
+  <g transform="translate(48 88)">
+    <rect width="252" height="100" rx="12" fill="#fff" stroke="#e2e8f0"/>
+    <text x="20" y="36" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="14">Total requests</text>
+    <text x="20" y="72" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="32" font-weight="700">128</text>
+  </g>
+  <g transform="translate(320 88)">
+    <rect width="252" height="100" rx="12" fill="#fff" stroke="#e2e8f0"/>
+    <text x="20" y="36" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="14">Pending</text>
+    <text x="20" y="72" fill="#b45309" font-family="Segoe UI, sans-serif" font-size="32" font-weight="700">24</text>
+  </g>
+  <g transform="translate(592 88)">
+    <rect width="252" height="100" rx="12" fill="#fff" stroke="#e2e8f0"/>
+    <text x="20" y="36" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="14">In progress</text>
+    <text x="20" y="72" fill="#d97706" font-family="Segoe UI, sans-serif" font-size="32" font-weight="700">18</text>
+  </g>
+  <g transform="translate(864 88)">
+    <rect width="252" height="100" rx="12" fill="#fff" stroke="#e2e8f0"/>
+    <text x="20" y="36" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="14">Completed</text>
+    <text x="20" y="72" fill="#15803d" font-family="Segoe UI, sans-serif" font-size="32" font-weight="700">86</text>
+  </g>
+  <rect x="48" y="220" width="1104" height="420" rx="14" fill="#fff" stroke="#e2e8f0"/>
+  <text x="72" y="268" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="20" font-weight="600">Recent requests</text>
+  <text x="1050" y="268" fill="#6d28d9" font-family="Segoe UI, sans-serif" font-size="15" font-weight="600">View all</text>
+  <line x1="72" y1="290" x2="1128" y2="290" stroke="#e2e8f0"/>
+  <text x="72" y="330" fill="#475569" font-family="Segoe UI, sans-serif" font-size="15" font-weight="600">Title</text>
+  <text x="420" y="330" fill="#475569" font-family="Segoe UI, sans-serif" font-size="15" font-weight="600">Location</text>
+  <text x="720" y="330" fill="#475569" font-family="Segoe UI, sans-serif" font-size="15" font-weight="600">Status</text>
+  <g transform="translate(72 350)">
+    <text y="24" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="15">Lecture hall projector</text>
+    <text x="348" y="24" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="15">Hall A</text>
+    <rect x="648" y="4" width="96" height="26" rx="6" fill="#fef3c7"/>
+    <text x="660" y="22" fill="#b45309" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600">in progress</text>
+  </g>
+  <g transform="translate(72 400)">
+    <text y="24" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="15">Hostel leak, Block B</text>
+    <text x="348" y="24" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="15">Block B</text>
+    <rect x="648" y="4" width="80" height="26" rx="6" fill="#ede9fe"/>
+    <text x="660" y="22" fill="#5b21b6" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600">assigned</text>
+  </g>
+  <g transform="translate(72 450)">
+    <text y="24" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="15">Library chair repair</text>
+    <text x="348" y="24" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="15">Main library</text>
+    <rect x="648" y="4" width="88" height="26" rx="6" fill="#dcfce7"/>
+    <text x="660" y="22" fill="#15803d" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600">completed</text>
+  </g>
+  <g transform="translate(72 500)">
+    <text y="24" fill="#0f172a" font-family="Segoe UI, sans-serif" font-size="15">No light in corridor</text>
+    <text x="348" y="24" fill="#64748b" font-family="Segoe UI, sans-serif" font-size="15">Science block</text>
+    <rect x="648" y="4" width="76" height="26" rx="6" fill="#f1f5f9"/>
+    <text x="660" y="22" fill="#475569" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600">pending</text>
+  </g>
+</svg>

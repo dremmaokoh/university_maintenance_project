@@ -1,9 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import LoadingSpinner from './components/LoadingSpinner.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 import WelcomePage from './pages/WelcomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import StudentRegisterPage from './pages/StudentRegisterPage.jsx';
+import OrgLoginPage from './pages/OrgLoginPage.jsx';
 import CreateAdminPage from './pages/CreateAdminPage.jsx';
 import InviteAcceptPage from './pages/InviteAcceptPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -12,11 +14,14 @@ import RequestDetailPage from './pages/RequestDetailPage.jsx';
 import CreateRequestPage from './pages/CreateRequestPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import InviteUsersPage from './pages/InviteUsersPage.jsx';
+import CategoriesPage from './pages/CategoriesPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 
 function DashboardRoute() {
   const { user, loading } = useAuth();
   if (loading) {
-    return <p className="muted center-page">Loading…</p>;
+    return <LoadingSpinner layout="page" />;
   }
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -29,8 +34,13 @@ export default function App() {
     <Routes>
       <Route path="/" element={<WelcomePage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/student/register" element={<StudentRegisterPage />} />
-      <Route path="/register" element={<Navigate to="/student/register" replace />} />
+      <Route path="/login/forgot" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/o/:orgSlug/register" element={<StudentRegisterPage />} />
+      <Route path="/o/:orgSlug/login" element={<OrgLoginPage />} />
+      <Route path="/o/:orgSlug/login/forgot" element={<ForgotPasswordPage />} />
+      <Route path="/student/register" element={<Navigate to="/" replace />} />
+      <Route path="/register" element={<Navigate to="/" replace />} />
       <Route path="/admin/register" element={<CreateAdminPage />} />
       <Route path="/invite/:token" element={<InviteAcceptPage />} />
       <Route path="/dashboard" element={<DashboardRoute />} />
@@ -55,6 +65,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <RequestDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <ProtectedRoute roles={['admin', 'officer']}>
+            <CategoriesPage />
           </ProtectedRoute>
         }
       />
