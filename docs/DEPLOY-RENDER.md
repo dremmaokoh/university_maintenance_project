@@ -4,9 +4,9 @@ Work through **one step at a time**. Do not move on until the current step’s c
 
 | Step | What |
 |------|------|
-| **1** | Deploy the **API** (Web Service) — *you are here* |
-| 2 | Deploy the **frontend** (Static Site) |
-| 3 | Connect API ↔ frontend (CORS + `VITE_API_BASE_URL`) |
+| **1** | Deploy the **API** (Web Service) — done |
+| **2** | Deploy the **frontend** (Static Site) — *you are here* |
+| 3 | Connect API ↔ frontend (`CLIENT_ORIGIN` on API) |
 | 4 | Production smoke test |
 
 ---
@@ -84,13 +84,65 @@ Swagger (after Step 1 passes): `https://YOUR-SERVICE-NAME.onrender.com/api/docs`
 
 ## Step 2 — Frontend (Static Site)
 
-*Do this after Step 1 passes.* Instructions will be added when you start Step 2.
+Do this after Step 1 `/api/health` works.
+
+Your API base (from Step 1):
+
+```text
+https://university-maintenance-project.onrender.com
+```
+
+### Create the Static Site
+
+1. [Render Dashboard](https://dashboard.render.com/) → **New +** → **Static Site**.
+2. Connect the same GitHub repo: `university_maintenance_project`.
+3. Settings:
+
+   | Setting | Value |
+   |---------|--------|
+   | **Name** | e.g. `resolva-web` |
+   | **Branch** | `master` |
+   | **Root Directory** | `client` |
+   | **Build Command** | `npm install && npm run build` |
+   | **Publish Directory** | `dist` |
+   | **Plan** | Free |
+
+4. **Environment variable** (required — baked in at build time):
+
+   | Key | Value |
+   |-----|--------|
+   | `VITE_API_BASE_URL` | `https://university-maintenance-project.onrender.com/api` |
+
+   If your API URL differs, use `https://YOUR-API.onrender.com/api` (must end with `/api`).
+
+5. **SPA routing:** The repo includes `client/public/_redirects` so React Router paths work after refresh. If you created the site before that file existed, add a Render **Rewrite** rule: `/*` → `/index.html` (Rewrite).
+
+6. **Create Static Site** and wait until deploy is **Live**.
+
+### Step 2 — Pass / fail check
+
+Open your static site URL (e.g. `https://resolva-web.onrender.com`):
+
+- **Pass:** Resolva landing page loads (not a blank page or 404 on `/`).
+- **Pass:** Browser devtools → Network: requests go to `university-maintenance-project.onrender.com/api/...` (after you try login or register), not `localhost:5000`.
+
+Copy your **frontend URL** for Step 3:
+
+```text
+https://YOUR-STATIC-SITE.onrender.com
+```
 
 ---
 
 ## Step 3 — Link API and frontend
 
-*After Step 2.* Set `VITE_API_BASE_URL` on the static site and `CLIENT_ORIGIN` on the API to your live frontend URL, then redeploy both.
+After Step 2, update CORS on the API:
+
+1. Render → **university_maintenance_project** (Web Service) → **Environment**.
+2. Set **`CLIENT_ORIGIN`** to your static site URL exactly, e.g. `https://resolva-web.onrender.com` (no trailing slash).
+3. **Save** and let the API redeploy (or Manual Deploy).
+
+If you change `VITE_API_BASE_URL`, **redeploy the static site** (new build required).
 
 ---
 
