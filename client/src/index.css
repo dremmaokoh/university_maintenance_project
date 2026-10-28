@@ -442,6 +442,22 @@ textarea:focus {
   border: 1px solid var(--color-border);
 }
 
+.evidence-storage-badge {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-muted, #eef1f4);
+  color: var(--text-muted, #5c6570);
+}
+
+.evidence-storage-badge[data-provider='cloudinary'] {
+  background: #e8f4ea;
+  color: #1e6b3a;
+}
+
 .request-evidence {
   margin-top: 1rem;
 }

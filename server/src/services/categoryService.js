@@ -10,9 +10,27 @@ function toPublicCategory(category) {
   };
 }
 
+function isOtherCategoryName(name) {
+  return String(name || '').trim().toLowerCase() === 'other';
+}
+
+function sortCategoriesForDisplay(categories) {
+  return [...categories].sort((a, b) => {
+    const aIsOther = isOtherCategoryName(a.name);
+    const bIsOther = isOtherCategoryName(b.name);
+    if (aIsOther && !bIsOther) {
+      return 1;
+    }
+    if (!aIsOther && bIsOther) {
+      return -1;
+    }
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  });
+}
+
 async function listCategories(organisationId) {
   const categories = await Category.find({ organisation: organisationId }).sort({ name: 1 });
-  return categories.map(toPublicCategory);
+  return sortCategoriesForDisplay(categories.map(toPublicCategory));
 }
 
 async function listSuggestedPresets(organisationId) {

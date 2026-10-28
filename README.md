@@ -37,4 +37,8 @@ Staff log in at `/login`. Students use `/o/{your-slug}/login`.
 
 Preview without local Mongo: `npm run dev:preview` in `server`.
 
+## Deploy to Render
+
+Step-by-step guide: **[docs/DEPLOY-RENDER.md](./docs/DEPLOY-RENDER.md)** — start with **Step 1** (API Web Service).
+
 See [AGENTS.md](./AGENTS.md).

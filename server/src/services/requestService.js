@@ -9,8 +9,10 @@ const HttpError = require('../utils/httpError');
 const { ROLES, STATUSES, ALLOWED_TRANSITIONS } = require('../constants');
 const { formatResolutionDuration } = require('../utils/formatResolution');
 const {
-  evidenceFromMulterFile,
   deleteEvidenceFile,
+  createEvidenceFromUpload,
+  fetchCloudinaryEvidenceBuffer,
+  isCloudinaryEvidence,
   getEvidenceAbsolutePath
 } = require('../utils/evidenceStorage');
 const fs = require('fs');
@@ -59,7 +61,10 @@ function toPublicRequest(request, extras = {}) {
           originalName: request.evidence.originalName,
           mimeType: request.evidence.mimeType,
           size: request.evidence.size,
-          uploadedAt: request.evidence.uploadedAt
+          uploadedAt: request.evidence.uploadedAt,
+          storageProvider:
+            request.evidence.storageProvider ||
+            (isCloudinaryEvidence(request.evidence) ? 'cloudinary' : 'local')
         }
       : null,
     assignedAt: extras.assignedAt || null
@@ -246,13 +251,13 @@ async function createRequest(user, payload, uploadedFile) {
     organisation: user.organisationId
   });
   if (!category) {
-    if (uploadedFile) {
-      deleteEvidenceFile({ storageKey: uploadedFile.filename });
-    }
     throw new HttpError(400, 'Please choose a valid category.');
   }
 
-  const evidence = evidenceFromMulterFile(uploadedFile);
+  let evidence;
+  if (uploadedFile) {
+    evidence = await createEvidenceFromUpload(uploadedFile, user.organisationId);
+  }
 
   const request = await Request.create({
     title: payload.title,
@@ -608,6 +613,22 @@ async function getRequestEvidenceFile(user, requestId) {
     throw new HttpError(404, 'No evidence file for this request.');
   }
 
+  if (isCloudinaryEvidence(request.evidence)) {
+    try {
+      const buffer = await fetchCloudinaryEvidenceBuffer(request.evidence);
+      return {
+        buffer,
+        mimeType: request.evidence.mimeType,
+        originalName: request.evidence.originalName
+      };
+    } catch (error) {
+      if (error.statusCode === 404) {
+        throw new HttpError(404, 'Evidence file is missing.');
+      }
+      throw error;
+    }
+  }
+
   const absolutePath = getEvidenceAbsolutePath(request.evidence.storageKey);
   if (!fs.existsSync(absolutePath)) {
     throw new HttpError(404, 'Evidence file is missing.');
@@ -623,7 +644,7 @@ async function getRequestEvidenceFile(user, requestId) {
 async function deleteRequest(user, requestId) {
   const request = await Request.findById(requestId);
   assertSameOrganisation(user, request);
-  deleteEvidenceFile(request.evidence);
+  await deleteEvidenceFile(request.evidence);
   await Request.findByIdAndDelete(requestId);
   await Assignment.deleteMany({ request: requestId });
   await StatusUpdate.deleteMany({ request: requestId });

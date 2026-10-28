@@ -1,0 +1,31 @@
+# Render Blueprint — Step 1: API only.
+# Frontend static site is configured manually in Step 2 (see docs/DEPLOY-RENDER.md).
+
+services:
+  - type: web
+    name: resolva-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: INVITE_EXPIRY_DAYS
+        value: "7"
+      - key: CLIENT_ORIGIN
+        value: http://localhost:5173
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

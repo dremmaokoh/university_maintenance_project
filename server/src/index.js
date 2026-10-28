@@ -6,7 +6,7 @@ const { buildSwaggerSpec } = require('./config/swagger');
 const { connectDatabase } = require('./database/connect');
 const { getDatabaseHealth, describeMongoUri } = require('./database/connectionHealth');
 const { repairStaleIndexes } = require('./database/repairIndexes');
-const { ensureUploadsDir } = require('./utils/evidenceStorage');
+const { configureEvidenceStorage, ensureUploadsDir } = require('./utils/evidenceStorage');
 const errorHandler = require('./middleware/errorHandler');
 const createAuthRouter = require('./routes/authRoutes');
 const createUserRouter = require('./routes/userRoutes');
@@ -28,6 +28,7 @@ async function start() {
   );
   await connectDatabase(env.mongoUri);
   await repairStaleIndexes();
+  configureEvidenceStorage(env);
   ensureUploadsDir();
 
   const app = express();

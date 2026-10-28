@@ -60,6 +60,7 @@ const requestSchema = new mongoose.Schema(
     evidence: {
       originalName: { type: String, default: null },
       storageKey: { type: String, default: null },
+      storageProvider: { type: String, enum: ['local', 'cloudinary'], default: null },
       mimeType: { type: String, default: null },
       size: { type: Number, default: null },
       uploadedAt: { type: Date, default: null }

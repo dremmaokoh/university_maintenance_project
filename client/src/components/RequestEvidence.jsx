@@ -46,10 +46,15 @@ export default function RequestEvidence({ token, requestId, evidence }) {
   }
 
   const sizeKb = evidence.size ? Math.max(1, Math.round(evidence.size / 1024)) : null;
+  const isCloudinary = evidence.storageProvider === 'cloudinary';
+  const storageLabel = isCloudinary ? 'Cloudinary' : 'Server disk (local)';
 
   return (
     <section className="request-evidence card">
       <h2>Photo / file evidence</h2>
+      <p className="evidence-storage-badge" data-provider={evidence.storageProvider || 'local'}>
+        Stored on: {storageLabel}
+      </p>
       <p className="muted">
         {evidence.originalName}
         {sizeKb ? ` · ${sizeKb} KB` : ''}

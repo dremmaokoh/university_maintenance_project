@@ -100,6 +100,10 @@ function createRequestRouter(env) {
         'Content-Disposition',
         `inline; filename="${encodeURIComponent(file.originalName || 'evidence')}"`
       );
+      if (file.buffer) {
+        res.send(file.buffer);
+        return;
+      }
       res.sendFile(file.path);
     })
   );

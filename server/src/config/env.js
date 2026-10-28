@@ -19,7 +19,12 @@ function loadEnv() {
     jwtSecret: required('JWT_SECRET'),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
     clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-    inviteExpiryDays: Number(process.env.INVITE_EXPIRY_DAYS) || 7
+    inviteExpiryDays: Number(process.env.INVITE_EXPIRY_DAYS) || 7,
+    cloudinary: {
+      cloudName: required('CLOUDINARY_CLOUD_NAME'),
+      apiKey: required('CLOUDINARY_API_KEY'),
+      apiSecret: required('CLOUDINARY_API_SECRET')
+    }
   };
 }
 

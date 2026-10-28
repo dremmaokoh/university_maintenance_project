@@ -1,20 +1,8 @@
 const multer = require('multer');
 const HttpError = require('../utils/httpError');
-const {
-  MAX_EVIDENCE_BYTES,
-  ALLOWED_MIME_TYPES,
-  ensureUploadsDir,
-  buildStorageKey
-} = require('../utils/evidenceStorage');
+const { MAX_EVIDENCE_BYTES, ALLOWED_MIME_TYPES } = require('../utils/evidenceStorage');
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, ensureUploadsDir());
-  },
-  filename(req, file, cb) {
-    cb(null, buildStorageKey(file.mimetype));
-  }
-});
+const storage = multer.memoryStorage();
 
 function fileFilter(req, file, cb) {
   if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
@@ -46,14 +34,8 @@ function handleUploadError(err, req, res, next) {
   next(err);
 }
 
-function removeUploadedFile(req) {
-  if (!req.file?.path) {
-    return;
-  }
-  const fs = require('fs');
-  if (fs.existsSync(req.file.path)) {
-    fs.unlinkSync(req.file.path);
-  }
+function removeUploadedFile() {
+  // Evidence is held in memory until persisted to Cloudinary in the service layer.
 }
 
 module.exports = {
