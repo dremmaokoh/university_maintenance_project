@@ -37,8 +37,8 @@ export default function LandingNav() {
         </div>
 
         <div className="landing-nav-actions">
-          <Link to="/login" className="landing-nav-link landing-nav-login" target="_blank" rel="noreferrer">Log In</Link>
-          <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-nav" target="_blank" rel="noreferrer">
+          <Link to="/login" className="landing-nav-link landing-nav-login">Log In</Link>
+          <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-nav">
             Set Up Organisation
           </Link>
           <button
@@ -67,8 +67,8 @@ export default function LandingNav() {
             {link.label}
           </LandingSectionLink>
         ))}
-        <Link to="/login" className="landing-mobile-link" target="_blank" rel="noreferrer" onClick={closeMenu}>Log In</Link>
-        <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-block" target="_blank" rel="noreferrer" onClick={closeMenu}>
+        <Link to="/login" className="landing-mobile-link" onClick={closeMenu}>Log In</Link>
+        <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-block" onClick={closeMenu}>
           Set Up Organisation
         </Link>
       </div>

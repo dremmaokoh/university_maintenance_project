@@ -115,7 +115,7 @@ https://university-maintenance-project.onrender.com
 
    If your API URL differs, use `https://YOUR-API.onrender.com/api` (must end with `/api`).
 
-5. **SPA routing:** The repo includes `client/public/_redirects` so React Router paths work after refresh. If you created the site before that file existed, add a Render **Rewrite** rule: `/*` → `/index.html` (Rewrite).
+5. **SPA routing:** Add a Render **Rewrite** (Settings → Redirects/Rewrites): source `/*`, destination `/index.html`, action **Rewrite**. The repo also ships `client/public/_redirects` for the same behavior after build.
 
 6. **Create Static Site** and wait until deploy is **Live**.
 
