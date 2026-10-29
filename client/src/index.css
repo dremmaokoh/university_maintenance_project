@@ -253,6 +253,29 @@ textarea:focus {
   background: var(--color-primary-hover);
 }
 
+a.btn {
+  text-decoration: none;
+}
+
+a.btn-primary {
+  color: #fff;
+}
+
+a.btn-primary:hover:not(:disabled) {
+  color: #fff;
+  text-decoration: none;
+  background: var(--color-primary-hover);
+}
+
+a.btn-secondary {
+  color: var(--color-secondary);
+}
+
+a.btn-secondary:hover:not(:disabled) {
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
 .btn-secondary {
   background: #ede9fe;
   color: var(--color-secondary);
