@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import LandingNav from '../components/landing/LandingNav.jsx';
+import LandingSectionLink from '../components/landing/LandingSectionLink.jsx';
 import LandingHeroDashboard from '../components/landing/LandingHeroDashboard.jsx';
 import LandingRequestDetailPreview from '../components/landing/LandingRequestDetailPreview.jsx';
 import '../styles/landing.css';
@@ -83,13 +84,11 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const sectionId = location.state?.scrollTo;
-    const hashId = window.location.hash.replace('#', '');
-    const targetId = sectionId || hashId;
-    if (!targetId) {
+    if (!sectionId) {
       return;
     }
     const frame = requestAnimationFrame(() => {
-      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     return () => cancelAnimationFrame(frame);
   }, [location.state, location.pathname]);
@@ -240,9 +239,9 @@ export default function WelcomePage() {
             </p>
           </div>
           <nav className="landing-footer-links" aria-label="Footer">
-            <a href="#how-it-works">How It Works</a>
-            <a href="#features">Features</a>
-            <a href="#for-universities">For Universities</a>
+            <LandingSectionLink sectionId="how-it-works">How It Works</LandingSectionLink>
+            <LandingSectionLink sectionId="features">Features</LandingSectionLink>
+            <LandingSectionLink sectionId="for-universities">For Universities</LandingSectionLink>
             <Link to="/login" target="_blank" rel="noopener noreferrer">
               Log In
             </Link>

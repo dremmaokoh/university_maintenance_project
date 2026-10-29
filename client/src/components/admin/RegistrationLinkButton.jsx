@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import RegistrationLinkModal from './RegistrationLinkModal.jsx';
 import { SHARE_REGISTRATION_LINK_LABEL } from '../../utils/teamAccessCopy.js';
+import { buildAppUrl } from '../../utils/appUrl.js';
 
 export default function RegistrationLinkButton({
   slug,
@@ -8,7 +9,7 @@ export default function RegistrationLinkButton({
   className = 'btn btn-primary'
 }) {
   const [open, setOpen] = useState(false);
-  const registerUrl = slug ? `${window.location.origin}/o/${slug}/register` : '';
+  const registerUrl = slug ? buildAppUrl(`/o/${slug}/register`) : '';
 
   if (!slug) {
     return null;

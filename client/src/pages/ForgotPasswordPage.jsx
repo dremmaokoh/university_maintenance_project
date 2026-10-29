@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { buildAppUrl } from '../utils/appUrl.js';
 import * as authApi from '../api/authApi.js';
 import * as organisationApi from '../api/organisationApi.js';
 import { useToast } from '../context/ToastContext.jsx';
@@ -56,7 +57,7 @@ export default function ForgotPasswordPage() {
         setSubmitting(false);
         return;
       }
-      const link = `${window.location.origin}${res.data.resetPath}`;
+      const link = buildAppUrl(res.data.resetPath);
       setResetLink(link);
       showSuccess('Reset link ready. Copy it below to continue.');
     } catch (err) {
@@ -73,7 +74,7 @@ export default function ForgotPasswordPage() {
     setFormError('');
     try {
       const res = await authApi.forgotPassword({ email: email.trim(), userId });
-      const link = `${window.location.origin}${res.data.resetPath}`;
+      const link = buildAppUrl(res.data.resetPath);
       setResetLink(link);
       setAccounts(null);
       showSuccess('Reset link ready. Copy it below to continue.');

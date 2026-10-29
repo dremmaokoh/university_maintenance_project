@@ -3,6 +3,7 @@ import FieldLabel from '../FieldLabel.jsx';
 import Modal from './Modal.jsx';
 import CopyLinkField from './CopyLinkField.jsx';
 import * as inviteApi from '../../api/inviteApi.js';
+import { buildAppUrl } from '../../utils/appUrl.js';
 
 export default function InviteTeamMemberModal({ isOpen, onClose, token, onInviteCreated }) {
   const [fullName, setFullName] = useState('');
@@ -44,7 +45,7 @@ export default function InviteTeamMemberModal({ isOpen, onClose, token, onInvite
         payload.jobTitle = trimmedJobTitle;
       }
       const res = await inviteApi.createInvite(token, payload);
-      const link = `${window.location.origin}/invite/${res.data.inviteToken}`;
+      const link = buildAppUrl(`/invite/${res.data.inviteToken}`);
       setInviteLink(link);
       setFullName('');
       setEmail('');

@@ -30,6 +30,7 @@ import {
   TEAM_DIRECTORY_TITLE
 } from '../utils/teamAccessCopy.js';
 import * as userApi from '../api/userApi.js';
+import { buildAppUrl } from '../utils/appUrl.js';
 
 const TAB_TEAM = 'team';
 const TAB_STAFF = 'staff-student';
@@ -86,7 +87,7 @@ export default function InviteUsersPage() {
   const [memberPage, setMemberPage] = useState(1);
 
   const registerUrl = user?.organisation?.slug
-    ? `${window.location.origin}/o/${user.organisation.slug}/register`
+    ? buildAppUrl(`/o/${user.organisation.slug}/register`)
     : '';
 
   const loadTeam = useCallback(() => {

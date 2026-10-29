@@ -16,14 +16,13 @@ export default function LandingSectionLink({ sectionId, className, children, onN
     onNavigate?.();
     if (location.pathname === '/') {
       scrollToSection();
-      window.history.replaceState(null, '', `#${sectionId}`);
       return;
     }
     navigate('/', { state: { scrollTo: sectionId } });
   }
 
   return (
-    <a href={`/#${sectionId}`} className={className} onClick={handleClick}>
+    <a href="/" className={className} onClick={handleClick}>
       {children}
     </a>
   );
