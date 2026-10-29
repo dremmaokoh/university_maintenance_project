@@ -116,10 +116,20 @@ export default function WelcomePage() {
               for your university.
             </p>
             <div className="landing-hero-ctas">
-              <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-lg">
+              <Link
+                to="/admin/register"
+                className="landing-btn landing-btn-primary landing-btn-lg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Set Up Your Organisation
               </Link>
-              <Link to="/login" className="landing-btn landing-btn-secondary landing-btn-lg">
+              <Link
+                to="/login"
+                className="landing-btn landing-btn-secondary landing-btn-lg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Log In
               </Link>
             </div>
@@ -210,7 +220,12 @@ export default function WelcomePage() {
           Give your university a clearer way to report problems, coordinate repairs, and track
           progress.
         </p>
-        <Link to="/admin/register" className="landing-btn landing-btn-primary landing-btn-lg">
+        <Link
+          to="/admin/register"
+          className="landing-btn landing-btn-primary landing-btn-lg"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Set Up Your Organisation
         </Link>
       </section>
@@ -228,8 +243,12 @@ export default function WelcomePage() {
             <a href="#how-it-works">How It Works</a>
             <a href="#features">Features</a>
             <a href="#for-universities">For Universities</a>
-            <Link to="/login">Log In</Link>
-            <Link to="/admin/register">Set Up Organisation</Link>
+            <Link to="/login" target="_blank" rel="noopener noreferrer">
+              Log In
+            </Link>
+            <Link to="/admin/register" target="_blank" rel="noopener noreferrer">
+              Set Up Organisation
+            </Link>
           </nav>
         </div>
         <p className="landing-footer-copy">

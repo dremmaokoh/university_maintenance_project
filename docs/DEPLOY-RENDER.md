@@ -115,7 +115,7 @@ https://university-maintenance-project.onrender.com
 
    If your API URL differs, use `https://YOUR-API.onrender.com/api` (must end with `/api`).
 
-5. **SPA routing:** Add a Render **Rewrite** (Settings → Redirects/Rewrites): source `/*`, destination `/index.html`, action **Rewrite**. The repo also ships `client/public/_redirects` for the same behavior after build.
+5. **SPA routing (required for new-tab links and refresh):** In Render → static site → **Settings → Redirects/Rewrites**, add **Rewrite**: source `/*`, destination `/index.html`. The build also copies `client/public/_redirects` into `dist/` as a backup.
 
 6. **Create Static Site** and wait until deploy is **Live**.
 
