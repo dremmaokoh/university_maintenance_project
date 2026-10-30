@@ -89,8 +89,10 @@ Do this after Step 1 `/api/health` works.
 Your API base (from Step 1):
 
 ```text
-https://university-maintenance-project.onrender.com
+https://resolva-api.onrender.com
 ```
+
+(Use whatever name you gave the Web Service — the hostname is always `https://<service-name>.onrender.com`.)
 
 ### Create the Static Site
 
@@ -111,7 +113,7 @@ https://university-maintenance-project.onrender.com
 
    | Key | Value |
    |-----|--------|
-   | `VITE_API_BASE_URL` | `https://university-maintenance-project.onrender.com/api` |
+   | `VITE_API_BASE_URL` | `https://resolva-api.onrender.com/api` |
 
    If your API URL differs, use `https://YOUR-API.onrender.com/api` (must end with `/api`).
 
@@ -124,7 +126,7 @@ https://university-maintenance-project.onrender.com
 Open your static site URL (e.g. `https://resolva-web.onrender.com`):
 
 - **Pass:** Resolva landing page loads (not a blank page or 404 on `/`).
-- **Pass:** Browser devtools → Network: requests go to `university-maintenance-project.onrender.com/api/...` (after you try login or register), not `localhost:5000`.
+- **Pass:** Browser devtools → Network: requests go to `resolva-api.onrender.com/api/...` (after you try login or register), not `localhost:5000`.
 
 Copy your **frontend URL** for Step 3:
 
@@ -138,7 +140,7 @@ https://YOUR-STATIC-SITE.onrender.com
 
 After Step 2, update CORS on the API:
 
-1. Render → **university_maintenance_project** (Web Service) → **Environment**.
+1. Render → your **API** Web Service (e.g. `resolva-api`) → **Environment**.
 2. Set **`CLIENT_ORIGIN`** to your static site URL exactly, e.g. `https://resolva-web.onrender.com` (no trailing slash).
 3. **Save** and let the API redeploy (or Manual Deploy).
 
@@ -155,3 +157,26 @@ If you change `VITE_API_BASE_URL`, **redeploy the static site** (new build requi
 ## Optional: Blueprint (`render.yaml`)
 
 The repo includes a minimal `render.yaml` for the **API only**. You can use **New → Blueprint** and point at this repo instead of filling the form manually; you still must enter secret env vars in the dashboard after sync.
+
+---
+
+## Use “resolva” in your `onrender.com` URL
+
+Render’s public URL is **`https://<service-name>.onrender.com`**. It comes from the **Name** field when you create (or rename) a service — not from the GitHub repo name.
+
+| Service | Suggested name | Example URL |
+|---------|----------------|-------------|
+| API (Web Service) | `resolva-api` | `https://resolva-api.onrender.com` |
+| Frontend (Static Site) | `resolva` or `resolva-web` | `https://resolva.onrender.com` |
+
+### Rename an existing service (e.g. `university-maintenance-project-1`)
+
+1. [Render Dashboard](https://dashboard.render.com/) → open the service.
+2. **Settings** → **Name** → change to `resolva` (frontend) or `resolva-api` (API) → **Save**.
+3. Names must be **unique on Render**; if `resolva` is taken, try `resolva-app`, `resolva-web`, etc.
+4. The **old URL stops working** after rename. Update:
+   - Static site **`VITE_API_BASE_URL`** → `https://<api-service-name>.onrender.com/api`, then **Manual Deploy** (rebuild).
+   - API **`CLIENT_ORIGIN`** → `https://<frontend-service-name>.onrender.com` (no trailing slash), then redeploy API.
+5. Share the new frontend link (e.g. `https://resolva.onrender.com/#/login` with HashRouter).
+
+You cannot get a custom path on `onrender.com` (only the service name). For a domain like `app.resolva.com`, add a **Custom Domain** on the static site in Render and configure DNS.
