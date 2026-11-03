@@ -9,7 +9,7 @@
     "start": "node src/index.js",
     "seed": "node src/scripts/seed.js",
     "db:reset": "node src/scripts/resetDatabase.js",
-    "test": "node --test src/tests/*.test.js"
+    "test": "node --test --test-concurrency=1 src/tests/*.test.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

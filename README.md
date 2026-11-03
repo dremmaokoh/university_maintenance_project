@@ -37,6 +37,22 @@ Staff log in at `/login`. Students use `/o/{your-slug}/login`.
 
 Preview without local Mongo: `npm run dev:preview` in `server`.
 
+## Tests
+
+Backend (in-memory MongoDB; does not use your Atlas/local database):
+
+```bash
+cd server
+npm test
+```
+
+Frontend (page behaviour with mocked API calls):
+
+```bash
+cd client
+npm test
+```
+
 ## Deploy to Render
 
 Step-by-step guide: **[docs/DEPLOY-RENDER.md](./docs/DEPLOY-RENDER.md)** — start with **Step 1** (API Web Service).

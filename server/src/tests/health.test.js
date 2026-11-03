@@ -1,15 +1,20 @@
-const test = require('node:test');
+const { before, after, test } = require('node:test');
 const assert = require('node:assert/strict');
-const express = require('express');
 const request = require('supertest');
+const { startTestApp, stopTestApp, getApp } = require('./helpers/testApp');
 
-test('health endpoint returns success', async () => {
-  const app = express();
-  app.get('/api/health', (req, res) => {
-    res.json({ success: true, message: 'API is running.' });
-  });
+before(async () => {
+  await startTestApp();
+}, { timeout: 120000 });
 
-  const response = await request(app).get('/api/health');
+after(async () => {
+  await stopTestApp();
+});
+
+test('GET /api/health returns success from the real app', async () => {
+  const response = await request(getApp()).get('/api/health');
   assert.equal(response.status, 200);
   assert.equal(response.body.success, true);
+  assert.equal(response.body.message, 'API is running.');
+  assert.ok(response.body.database);
 });

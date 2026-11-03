@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import * as authApi from '../api/authApi.js';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 const TOKEN_KEY = 'um_token';
 
 export function AuthProvider({ children }) {
