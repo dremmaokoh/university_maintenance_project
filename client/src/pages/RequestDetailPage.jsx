@@ -9,6 +9,7 @@ import StarRating from '../components/StarRating.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import RequestEvidence from '../components/RequestEvidence.jsx';
 import { memberTypeLabel } from '../utils/memberTypeLabel.js';
+import { commentAuthorRoleLabel } from '../utils/commentAuthorLabel.js';
 import { officerDisplayLabel } from '../utils/officerDisplayLabel.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
@@ -396,22 +397,25 @@ export default function RequestDetailPage() {
 
         <ul className="comment-list">
           {comments.length === 0 && <li className="muted">No comments yet.</li>}
-          {comments.map((item) => (
-            <li key={item.id} className="comment-item">
-              <p className="comment-body">{item.body}</p>
-              <p className="muted comment-meta">
-                {item.author?.fullName}
-                {item.author?.role ? ` (${item.author.role})` : ''}
-                · {new Date(item.createdAt).toLocaleString()}
-                {isStaff && item.visibleToRequester && (
-                  <span className="comment-badge">Shared with requester</span>
-                )}
-                {isStaff && !item.visibleToRequester && item.author?.role !== 'student' && (
-                  <span className="comment-badge staff-only">Staff only</span>
-                )}
-              </p>
-            </li>
-          ))}
+          {comments.map((item) => {
+            const authorLabel = commentAuthorRoleLabel(item.author);
+            return (
+              <li key={item.id} className="comment-item">
+                <p className="comment-body">{item.body}</p>
+                <p className="muted comment-meta">
+                  {item.author?.fullName}
+                  {authorLabel ? ` (${authorLabel})` : ''}
+                  · {new Date(item.createdAt).toLocaleString()}
+                  {isStaff && item.visibleToRequester && (
+                    <span className="comment-badge">Shared with requester</span>
+                  )}
+                  {isStaff && !item.visibleToRequester && item.author?.role !== 'student' && (
+                    <span className="comment-badge staff-only">Staff only</span>
+                  )}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </DashboardLayout>

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ROLE_VALUES, MEMBER_TYPE_VALUES } = require('../constants');
 
 const requestCommentSchema = new mongoose.Schema(
   {
@@ -11,6 +12,11 @@ const requestCommentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
+    },
+    authorSnapshot: {
+      fullName: { type: String, trim: true },
+      role: { type: String, enum: ROLE_VALUES },
+      memberType: { type: String, enum: MEMBER_TYPE_VALUES }
     },
     body: {
       type: String,

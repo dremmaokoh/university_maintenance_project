@@ -3,6 +3,7 @@ const Assignment = require('../models/Assignment');
 const StatusUpdate = require('../models/StatusUpdate');
 const RequestComment = require('../models/RequestComment');
 const { isVisibleToRequester, filterCommentsForUser } = require('../utils/commentVisibility');
+const { buildAuthorSnapshot, presentCommentAuthor } = require('../utils/commentAuthor');
 const Category = require('../models/Category');
 const User = require('../models/User');
 const HttpError = require('../utils/httpError');
@@ -475,13 +476,7 @@ function toPublicComment(comment) {
     id: comment.id,
     body: comment.body,
     visibleToRequester: comment.visibleToRequester,
-    author: comment.author
-      ? {
-          id: comment.author.id || comment.author._id,
-          fullName: comment.author.fullName,
-          role: comment.author.role
-        }
-      : null,
+    author: presentCommentAuthor(comment),
     createdAt: comment.createdAt
   };
 }
@@ -492,7 +487,7 @@ async function listRequestComments(user, requestId) {
   await getRequestById(user, requestId);
 
   const comments = await RequestComment.find({ request: requestId })
-    .populate('author', 'fullName role')
+    .populate('author', 'fullName role memberType')
     .sort({ createdAt: 1 });
 
   const requesterId = request.requester?.id || request.requester?._id || request.requester;
@@ -525,11 +520,15 @@ async function addRequestComment(user, requestId, body) {
   const comment = await RequestComment.create({
     request: requestId,
     author: user.id,
+    authorSnapshot: buildAuthorSnapshot(user),
     body,
     visibleToRequester
   });
 
-  const populated = await RequestComment.findById(comment.id).populate('author', 'fullName role');
+  const populated = await RequestComment.findById(comment.id).populate(
+    'author',
+    'fullName role memberType'
+  );
   return toPublicComment(populated);
 }
 
