@@ -33,17 +33,18 @@ export default function InviteTeamMemberModal({ isOpen, onClose, token, onInvite
     setInviteLink('');
     setSubmitting(true);
     try {
+      const trimmedJobTitle = jobTitle.trim();
+      if (role === 'officer' && !trimmedJobTitle) {
+        setFormError('Job title is required for maintenance officers.');
+        setSubmitting(false);
+        return;
+      }
       const payload = {
         fullName: fullName.trim(),
         email: email.trim(),
-        role
+        role,
+        jobTitle: trimmedJobTitle
       };
-      const trimmedJobTitle = jobTitle.trim();
-      if (role === 'officer') {
-        payload.jobTitle = trimmedJobTitle;
-      } else if (trimmedJobTitle) {
-        payload.jobTitle = trimmedJobTitle;
-      }
       const res = await inviteApi.createInvite(token, payload);
       const link = buildAppUrl(`/invite/${res.data.inviteToken}`);
       setInviteLink(link);
@@ -51,7 +52,8 @@ export default function InviteTeamMemberModal({ isOpen, onClose, token, onInvite
       setEmail('');
       onInviteCreated?.();
     } catch (err) {
-      setFormError(err.message || 'Could not create the invitation. Please try again.');
+      const fieldMessage = err.details?.[0]?.message;
+      setFormError(fieldMessage || err.message || 'Could not create the invitation. Please try again.');
     } finally {
       setSubmitting(false);
     }

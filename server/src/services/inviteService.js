@@ -62,7 +62,8 @@ async function createInvite(adminUser, { fullName, email, role, jobTitle }, invi
       id: user.id,
       fullName: user.fullName,
       email: user.email,
-      role: user.role
+      role: user.role,
+      jobTitle: user.jobTitle || null
     },
     inviteToken: rawToken
   };

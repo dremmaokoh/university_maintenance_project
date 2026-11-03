@@ -23,7 +23,8 @@ function createInviteRouter(env) {
         {
           fullName: req.body.fullName,
           email: req.body.email,
-          role: req.body.role
+          role: req.body.role,
+          jobTitle: req.body.jobTitle
         },
         env.inviteExpiryDays
       );

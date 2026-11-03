@@ -7,11 +7,16 @@ const createInviteValidators = [
   body('role')
     .isIn(INVITE_ROLES)
     .withMessage('Role must be admin or officer.'),
-  body('jobTitle')
-    .optional({ values: 'falsy' })
-    .trim()
-    .isLength({ max: 80 })
-    .withMessage('Job title must be 80 characters or fewer.')
+  body('jobTitle').custom((value, { req }) => {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (req.body.role === 'officer' && !trimmed) {
+      throw new Error('Job title is required for maintenance officers.');
+    }
+    if (trimmed.length > 80) {
+      throw new Error('Job title must be 80 characters or fewer.');
+    }
+    return true;
+  })
 ];
 
 const acceptInviteValidators = [
