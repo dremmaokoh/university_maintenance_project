@@ -3,7 +3,7 @@
 **University Maintenance and Service Request System**  
 MIT 8333 — Advanced Web Application Development
 
-Replace the highlighted placeholders (`YOUR-…`) with your live Render URLs before submitting. Insert screenshots in Section 8. Do not paste secrets, `.env` values, or database passwords.
+Only **Section 8** needs your screenshot images pasted into the Word/PDF copy. Live URLs and deployment details below match the Render services in use. Do not paste secrets, `.env` values, or database passwords.
 
 ---
 
@@ -52,6 +52,7 @@ The system is multi-organisation: each campus (or department) has its own users,
 - Categories are seeded per organisation and can be managed by admins.
 - Admins invite officers/admins with a time-limited token; the invitee sets a password.
 - Evidence files are uploaded to Cloudinary (with local disk as a fallback).
+- Signed-in users are logged out automatically after **10 minutes** of inactivity (no mouse, keyboard, touch, scroll, or click).
 - Password reset uses a copyable link (the coursework app does not send email).
 
 ### 3.3 Non-functional requirements
@@ -176,11 +177,11 @@ Assignment N >── 1 User (officer)
 
 ## 7. API documentation
 
-Interactive explorer (replace with your service name):
+Interactive explorer (production):
 
 ```text
-https://YOUR-API.onrender.com/api/docs
-Health check: https://YOUR-API.onrender.com/api/health
+https://university-maintenance-project.onrender.com/api/docs
+Health check: https://university-maintenance-project.onrender.com/api/health
 ```
 
 Locally: `http://localhost:5000/api/docs`.
@@ -260,22 +261,22 @@ The Swagger UI is mounted from `swagger-jsdoc`. The table below is the **complet
 
 ## 8. Screenshots of major interfaces
 
-Take these from the **live** site using hash URLs (`https://YOUR-FRONTEND.onrender.com/#/…`). Caption each image with the role and what the screen is for. Do not show passwords or JWT tokens.
+Take these from the **live** site (hash routes). Caption each image with the role and what the screen is for. Do not show passwords or JWT tokens.
 
-| # | Screen | Suggested URL | Caption to write |
-|---|--------|---------------|------------------|
-| 1 | Landing | `/#/` | Public home / get started |
-| 2 | Create organisation | `/#/admin/register` | First admin setup |
-| 3 | Staff login | `/#/login` | Officers and admins |
-| 4 | Student/staff register | `/#/o/{slug}/register` | Org-scoped registration |
-| 5 | Admin overview | `/#/dashboard` | KPI / charts |
-| 6 | Team & Access | `/#/admin/invites` | Invites and registration link |
-| 7 | All requests | `/#/requests` (admin) | Organisation queue |
-| 8 | New request | `/#/requests/new` (student) | Submit form |
-| 9 | Request detail | `/#/requests/{id}` | Status, comments, evidence, rating |
-| 10 | Officer My Work | `/#/requests` (officer) | Assigned jobs only |
-| 11 | Categories | `/#/categories` | Issue types |
-| 12 | API docs (optional) | `/api/docs` | Swagger UI |
+| # | Screen | URL to capture | Caption to write |
+|---|--------|----------------|------------------|
+| 1 | Landing | https://resolva-1u28.onrender.com/#/ | Public home / get started |
+| 2 | Create organisation | https://resolva-1u28.onrender.com/#/admin/register | First admin setup |
+| 3 | Staff login | https://resolva-1u28.onrender.com/#/login | Officers and admins |
+| 4 | Student/staff register | https://resolva-1u28.onrender.com/#/o/{your-org-slug}/register | Org-scoped registration |
+| 5 | Admin overview | https://resolva-1u28.onrender.com/#/dashboard | KPI / charts |
+| 6 | Team & Access | https://resolva-1u28.onrender.com/#/admin/invites | Invites and registration link |
+| 7 | All requests | https://resolva-1u28.onrender.com/#/requests (admin) | Organisation queue |
+| 8 | New request | https://resolva-1u28.onrender.com/#/requests/new (student) | Submit form |
+| 9 | Request detail | https://resolva-1u28.onrender.com/#/requests/{id} | Status, comments, evidence, rating |
+| 10 | Officer My Work | https://resolva-1u28.onrender.com/#/requests (officer) | Assigned jobs only |
+| 11 | Categories | https://resolva-1u28.onrender.com/#/categories | Issue types |
+| 12 | API docs (optional) | https://university-maintenance-project.onrender.com/api/docs | Swagger UI |
 
 **Paste screenshots below this line in the Word/PDF copy.**
 
@@ -307,12 +308,12 @@ npm test
 
 ### 9.1 Results recorded during development
 
-Re-run before submission and replace this paragraph with a screenshot of your terminal.
+Server tests were run with `npm.cmd test` in `server` (PowerShell blocks `npm.ps1`). Result from that run: **26 tests, 2 suites, 26 passed, 0 failed**.
 
 | Suite | Command | Result (last local run) |
 |-------|---------|-------------------------|
-| Backend | `cd server && npm test` | **26 passed, 0 failed** |
-| Frontend | `cd client && npm test` | **13 passed, 0 failed** (5 files) |
+| Backend | `cd server && npm.cmd test` | **26 passed, 0 failed** (2 suites) |
+| Frontend | `cd client && npm.cmd test` | **13 passed, 0 failed** (5 files, Vitest) |
 
 Backend tests use **MongoDB Memory Server**. They do not read or write the production Atlas database.
 
@@ -357,7 +358,15 @@ Unit tests also cover comment visibility and resolution-duration formatting.
 | F12 | Student can open `/requests` | Pass |
 | F13 | Officer blocked from student-only `/requests/new` | Pass |
 
-**Paste terminal screenshots of `npm test` (server and client) here in the Word/PDF copy.**
+**Terminal evidence (confirmed from the runs you captured).** Paste the matching screenshots into the Word/PDF copy under these captions.
+
+_Figure T1. Server tests, start of `npm.cmd test`._  
+_Figure T2. Server tests, middle of the run._  
+_Figure T3. Server tests, summary: tests 26, suites 2, pass 26, fail 0._  
+_Figure T4. Client tests, start of `npm.cmd test` (Vitest)._  
+_Figure T5. Client tests, summary: 5 files passed, 13 tests passed._
+
+The client run also printed `No routes matched location "/requests"` on stderr during student registration. That test still passed (the app redirects after register).
 
 ---
 
@@ -380,24 +389,25 @@ Render Web Service (Express in server/)
 
 Render’s filesystem is ephemeral. Evidence is stored in Cloudinary, not on the web-service disk, for that reason.
 
-### 10.2 Live URLs (fill in)
+### 10.2 Live URLs
 
 | Service | URL |
 |---------|-----|
-| Frontend | `https://YOUR-FRONTEND.onrender.com` |
-| API | `https://YOUR-API.onrender.com` |
-| Health | `https://YOUR-API.onrender.com/api/health` |
-| Swagger | `https://YOUR-API.onrender.com/api/docs` |
-| Source | GitHub repository for this project |
+| Frontend (static site) | https://resolva-1u28.onrender.com |
+| API (web service) | https://university-maintenance-project.onrender.com |
+| Health | https://university-maintenance-project.onrender.com/api/health |
+| Swagger | https://university-maintenance-project.onrender.com/api/docs |
+| Source | https://github.com/dremmaokoh/university_maintenance_project |
 
-Example hostnames used in project docs: API `resolva-api.onrender.com`, frontend `resolva-web.onrender.com`. Use the hostnames from **your** Render dashboard.
+Frontend build env: `VITE_API_BASE_URL=https://university-maintenance-project.onrender.com/api`.  
+API env: `CLIENT_ORIGIN=https://resolva-1u28.onrender.com` (no trailing slash).
 
 ### 10.3 How it was deployed
 
 1. **MongoDB Atlas** — database name in the URI (for example `university_maintenance`); network access allowed for Render.
 2. **API Web Service** — root directory `server`, build `npm install`, start `npm start`, health `/api/health`. The process listens on `0.0.0.0:$PORT`.
-3. **Static Site** — root directory `client`, build `npm install && npm run build`, publish `dist`, env `VITE_API_BASE_URL=https://<api-host>/api`.
-4. **CORS** — API env `CLIENT_ORIGIN` set to the exact static-site origin (no trailing slash).
+3. **Static Site** — root directory `client`, build `npm install && npm run build`, publish `dist`, env `VITE_API_BASE_URL=https://university-maintenance-project.onrender.com/api`. Live site: `https://resolva-1u28.onrender.com`.
+4. **CORS** — API env `CLIENT_ORIGIN=https://resolva-1u28.onrender.com` (no trailing slash).
 5. **Secrets** — `MONGODB_URI`, `JWT_SECRET`, Cloudinary keys in the Render dashboard only (not in Git).
 
 A Blueprint file `render.yaml` describes the API service; the static site is created in the dashboard (see `docs/DEPLOY-RENDER.md`).
@@ -422,6 +432,7 @@ Render’s free web service sleeps after inactivity. The first request after idl
 | Evidence files would disappear on each Render restart | Store uploads in Cloudinary; keep local disk only as a development fallback. |
 | Early health tests did not call the real Express app | Extract `createApp` in `server/src/app.js` and test with Supertest plus in-memory MongoDB. |
 | Same email can exist in more than one organisation | Login may return an account picker; students can also use `/o/{slug}/login`. |
+| Cloudinary uploads returned 403 while Admin API ping succeeded | The API key lacked Upload (`create`) permission; enabled upload on the key in Cloudinary Console (or used a key with full Upload API access). |
 | Invite/reset email was out of scope | The UI copies invite and reset links instead of sending mail. |
 
 ---
@@ -432,7 +443,7 @@ Resolva is a full-stack maintenance request system for MIT 8333. It supports thr
 
 **Limits (honest):** invite and password-reset links are copied in the browser rather than emailed; the free Render plan can sleep; Swagger UI is available but the endpoint table in Section 7 is the complete API list.
 
-The application is ready for demonstration using the live frontend URL, the GitHub repository, and the test commands in Section 9.
+The application is ready for demonstration at https://resolva-1u28.onrender.com/#/ , the API at https://university-maintenance-project.onrender.com/api/health , the GitHub repository linked in Section 10.2, and the test commands in Section 9.
 
 ---
 
