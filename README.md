@@ -53,8 +53,10 @@ cd client
 npm test
 ```
 
+## Project report
+
+Coursework write-up (introduction through conclusion): **[docs/PROJECT-REPORT.md](./docs/PROJECT-REPORT.md)**.
+
 ## Deploy to Render
 
 Step-by-step guide: **[docs/DEPLOY-RENDER.md](./docs/DEPLOY-RENDER.md)** — start with **Step 1** (API Web Service).
-
-See [AGENTS.md](./AGENTS.md).

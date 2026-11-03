@@ -7,7 +7,6 @@ const { createAccessToken } = require('../auth/tokens');
 const organisationService = require('./organisationService');
 const { generateInviteToken, hashInviteToken } = require('../utils/inviteToken');
 const { normalizeAuthEmail } = require('../utils/normalizeAuthEmail');
-const { debugSessionLog } = require('../utils/debugSessionLog');
 
 const PASSWORD_RESET_HOURS = 24;
 
@@ -89,16 +88,6 @@ async function createBootstrapAdmin({
     user.accountStatus = ACCOUNT_STATUS.ACTIVE;
     user.isActive = true;
     await user.save();
-
-    // #region agent log
-    debugSessionLog({
-      runId: 'post-fix',
-      hypothesisId: 'H-no-password',
-      location: 'authService.js:createBootstrapAdmin',
-      message: 'set password on unfinished organisation admin',
-      data: { hadUser: true, passwordSet: true }
-    });
-    // #endregion
 
     const token = createAccessToken(user, jwtSecret, jwtExpiresIn);
     return { user: await enrichUser(user), token };
@@ -344,21 +333,6 @@ async function login({ email, password, organisationId, orgSlug, userId, jwtSecr
     candidates = await User.find(query).select('+passwordHash');
   }
 
-  // #region agent log
-  debugSessionLog({
-    runId: 'officer-login',
-    hypothesisId: 'H-login',
-    location: 'authService.js:login',
-    message: 'login candidate counts',
-    data: {
-      candidatesCount: candidates.length,
-      hasOrgSlug: Boolean(orgSlug),
-      hasUserId: Boolean(userId),
-      emailValueCount: emailValues.length
-    }
-  });
-  // #endregion
-
   if (candidates.length === 0) {
     throw new HttpError(401, 'Incorrect or invalid email.');
   }
@@ -371,20 +345,6 @@ async function login({ email, password, organisationId, orgSlug, userId, jwtSecr
   );
 
   if (activeCandidates.length === 0) {
-    const statusBreakdown = candidates.reduce((acc, u) => {
-      const key = `${u.accountStatus}:${Boolean(u.passwordHash)}`;
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-    // #region agent log
-    debugSessionLog({
-      runId: 'officer-login',
-      hypothesisId: 'H-pending',
-      location: 'authService.js:login',
-      message: 'no active candidates',
-      data: { statusBreakdown, roles: candidates.map((u) => u.role) }
-    });
-    // #endregion
     const pendingInvite = candidates.some(
       (user) => user.accountStatus === ACCOUNT_STATUS.PENDING && !user.passwordHash
     );
