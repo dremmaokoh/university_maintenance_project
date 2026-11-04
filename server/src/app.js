@@ -47,6 +47,26 @@ function createApp(env) {
   );
   app.use(express.json());
 
+  /**
+   * @openapi
+   * /health:
+   *   get:
+   *     tags: [Health]
+   *     summary: Check that the API and database are reachable
+   *     operationId: getHealth
+   *     responses:
+   *       '200':
+   *         description: API process is running. `database.connected` reports the MongoDB connection.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 message: { type: string, example: API is running. }
+   *                 database:
+   *                   $ref: '#/components/schemas/DatabaseHealth'
+   */
   app.get('/api/health', (req, res) => {
     res.json({
       success: true,
@@ -66,6 +86,24 @@ function createApp(env) {
   app.use('/api/reports', createReportRouter(env));
 
   const swaggerSpec = buildSwaggerSpec();
+  /**
+   * @openapi
+   * /docs.json:
+   *   get:
+   *     tags: [Health]
+   *     summary: Download the OpenAPI specification
+   *     operationId: getOpenApiSpec
+   *     responses:
+   *       '200':
+   *         description: Generated OpenAPI 3 document used by Swagger UI.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   */
+  app.get('/api/docs.json', (req, res) => {
+    res.json(swaggerSpec);
+  });
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use(errorHandler);

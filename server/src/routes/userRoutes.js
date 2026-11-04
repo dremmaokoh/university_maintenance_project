@@ -12,6 +12,352 @@ function createUserRouter(env) {
   const router = express.Router();
   const requireAuth = authenticate(env.jwtSecret);
 
+  /**
+   * @openapi
+   * /users:
+   *   get:
+   *     tags: [Users]
+   *     summary: List administrators and maintenance officers
+   *     operationId: listTeamUsers
+   *     description: Administrator only. Officers who have been rated include averageRating and ratingCount.
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       '200':
+   *         description: Team accounts, newest first.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/PublicUser'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/officers:
+   *   get:
+   *     tags: [Users]
+   *     summary: List active maintenance officers
+   *     operationId: listOfficers
+   *     description: Administrator only. Used when assigning a request.
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       '200':
+   *         description: Active officers, sorted by name.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/PublicUser'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/team/stats:
+   *   get:
+   *     tags: [Users]
+   *     summary: Count team accounts
+   *     operationId: getTeamStats
+   *     description: Administrator only.
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       '200':
+   *         description: Totals for administrators, officers, active accounts, and inactive accounts.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     total: { type: integer }
+   *                     admins: { type: integer }
+   *                     officers: { type: integer }
+   *                     active: { type: integer }
+   *                     inactive: { type: integer }
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/team/export:
+   *   get:
+   *     tags: [Reports]
+   *     summary: Export team accounts as JSON
+   *     operationId: exportTeamUsers
+   *     description: Administrator only. Returns JSON items for the client to turn into a spreadsheet. This is not a CSV download.
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       '200':
+   *         description: Team rows, including roleLabel and accountStatusLabel.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/PublicUser'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/members/stats:
+   *   get:
+   *     tags: [Users]
+   *     summary: Count staff and student requesters
+   *     operationId: getMemberStats
+   *     description: Administrator only.
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       '200':
+   *         description: Requester totals.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     total: { type: integer }
+   *                     staff: { type: integer }
+   *                     students: { type: integer }
+   *                     active: { type: integer }
+   *                     inactive: { type: integer }
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/members:
+   *   get:
+   *     tags: [Users]
+   *     summary: List staff and student requesters
+   *     operationId: listOrgMembers
+   *     description: Administrator only. Search matches name or email.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - $ref: '#/components/parameters/Page'
+   *       - $ref: '#/components/parameters/Limit'
+   *       - $ref: '#/components/parameters/Search'
+   *       - in: query
+   *         name: memberType
+   *         schema: { type: string, enum: [student, staff] }
+   *       - in: query
+   *         name: status
+   *         schema: { type: string, enum: [active, inactive] }
+   *       - in: query
+   *         name: sort
+   *         schema: { type: string, enum: [name, joined], default: joined }
+   *         description: joined sorts by the date the account was created.
+   *       - $ref: '#/components/parameters/Order'
+   *     responses:
+   *       '200':
+   *         description: One page of requesters.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/PublicUser'
+   *                     page: { type: integer }
+   *                     limit: { type: integer }
+   *                     total: { type: integer }
+   *                     totalPages: { type: integer }
+   *       '400':
+   *         $ref: '#/components/responses/BadRequest'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/members/export:
+   *   get:
+   *     tags: [Reports]
+   *     summary: Export requesters as JSON
+   *     operationId: exportOrgMembers
+   *     description: Administrator only. Same filters as the member list. Returns at most 5000 rows as JSON, not a CSV file.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - $ref: '#/components/parameters/Search'
+   *       - in: query
+   *         name: memberType
+   *         schema: { type: string, enum: [student, staff] }
+   *       - in: query
+   *         name: status
+   *         schema: { type: string, enum: [active, inactive] }
+   *       - in: query
+   *         name: sort
+   *         schema: { type: string, enum: [name, joined] }
+   *       - $ref: '#/components/parameters/Order'
+   *     responses:
+   *       '200':
+   *         description: Requester rows.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     items:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/PublicUser'
+   *       '400':
+   *         $ref: '#/components/responses/BadRequest'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   * /users/{id}/profile:
+   *   get:
+   *     tags: [Users]
+   *     summary: Read a team member profile
+   *     operationId: getTeamMemberProfile
+   *     description: Administrator only. Officer profiles include completed job count and average resolution time.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     responses:
+   *       '200':
+   *         description: Team member, labels, and officer performance when applicable.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   allOf:
+   *                     - $ref: '#/components/schemas/PublicUser'
+   *                     - type: object
+   *                       properties:
+   *                         performance:
+   *                           type: object
+   *                           nullable: true
+   *                           properties:
+   *                             completedCount: { type: integer }
+   *                             averageResolutionTime: { type: string, nullable: true }
+   *       '400':
+   *         $ref: '#/components/responses/BadRequest'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   *       '404':
+   *         $ref: '#/components/responses/NotFound'
+   * /users/{id}:
+   *   get:
+   *     tags: [Users]
+   *     summary: Read one user in the organisation
+   *     operationId: getUser
+   *     description: Administrator only.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     responses:
+   *       '200':
+   *         description: User record.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   $ref: '#/components/schemas/PublicUser'
+   *       '400':
+   *         $ref: '#/components/responses/BadRequest'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   *       '404':
+   *         $ref: '#/components/responses/NotFound'
+   *   patch:
+   *     tags: [Users]
+   *     summary: Update a team member
+   *     operationId: updateUser
+   *     description: Administrator only. Requester roles cannot be changed here. An administrator cannot change their own role or disable their own account. The organisation must keep one active administrator. Officers must keep a job title.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               fullName: { type: string }
+   *               role: { type: string, enum: [admin, officer] }
+   *               isActive: { type: boolean }
+   *               jobTitle: { type: string, maxLength: 80, nullable: true }
+   *     responses:
+   *       '200':
+   *         description: Updated user.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   $ref: '#/components/schemas/PublicUser'
+   *       '400':
+   *         $ref: '#/components/responses/BadRequest'
+   *       '401':
+   *         $ref: '#/components/responses/Unauthorized'
+   *       '403':
+   *         $ref: '#/components/responses/Forbidden'
+   *       '404':
+   *         $ref: '#/components/responses/NotFound'
+   */
+
   router.get(
     '/',
     requireAuth,
