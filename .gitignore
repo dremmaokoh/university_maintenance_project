@@ -10,6 +10,7 @@ server/uploads/
 
 # Local Cursor / agent tooling (keep on disk, not on GitHub)
 AGENTS.md
+docs/PROJECT-REPORT.md
 .cursor/
 scripts/push-project-report.ps1
 scripts/publish-to-github.ps1
